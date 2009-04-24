@@ -1,0 +1,21 @@
+README
+
+# Get it running
+
+ - Make two directories named "images" and "cache" in the ImgBrowz0r directory.
+ - Make "cache" writable.
+ - Drop some images and directories in "images".
+
+That's a really basic setup. It's recommended to play with the condiguration
+and try various things (url rewriting, CMS integration, etc.).
+
+# Get help/info
+
+The project page: http://61924.nl/projects/imgbrowz0r.html
+The forum: http://forum.61924.nl/
+The demo: http://images.61924.nl/
+
+# Development
+
+You can take a look at the development progress here:
+http://bitbucket.org/fsx/imgbrowz0r/

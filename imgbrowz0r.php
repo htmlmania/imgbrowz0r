@@ -99,7 +99,7 @@ class imgbrowz0r
 		           $this->config['main_url']).'$/i', $current_url, $matches);
 
 		// Set current path/directory and page
-		$raw_path = isset($matches[1]) ? trim($matches[1], ' /\n\t') : false;
+		$raw_path = isset($matches[1]) ? trim($matches[1], " /\n\t") : false;
 
 		if ($raw_path !== false)
 		{

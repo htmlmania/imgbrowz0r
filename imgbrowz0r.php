@@ -45,7 +45,10 @@ define('IMGBROWZ0R_VERSION', '0.3-dev');
 
 class imgbrowz0r
 {
-	private $config, $cur_directory, $cur_page;
+	private $config, $cur_directory, $cur_page, $files, $page_count,
+	        $count_files=0, $count_dirs=0, $count_imgs=0;
+
+	public $status=200;
 
 	// Check if GD is loaded and set configuration
 	public function __construct($config)
@@ -113,21 +116,11 @@ class imgbrowz0r
 			$this->cur_directory = false;
 	}
 
-	// Reads the gallery directories and files
-	public function browse()
+	public function init()
 	{
-		@set_time_limit(180); // 3 Minutes
-
-		$output = null;
 		$dirs = array();
 		$imgs = array();
-
 		$full_path = $this->cur_directory === false ? $this->config['images_dir'].'/' : $this->config['images_dir'].'/'.$this->cur_directory;
-
-		// Start capturing output
-		ob_start();
-
-		echo '<div id="imgbrowz0r">';
 
 		if (is_dir($full_path) && ($handle = opendir($full_path)))
 		{
@@ -156,84 +149,88 @@ class imgbrowz0r
 			closedir($handle);
 
 			// Sort arrays
-			if (($count_dirs = count($dirs)) > 0)
+			if (($this->count_dirs = count($dirs)) > 0)
 			{
 				foreach($dirs as $res) $sortAux[] = $res[$this->config['sort_by']];
 				array_multisort($sortAux, $this->config['sort_order'], $dirs);
 			}
 
-			if (($count_imgs = count($imgs)) > 0)
+			if (($this->count_imgs = count($imgs)) > 0)
 			{
 				foreach($imgs as $res2) $sortAux2[] = $res2[$this->config['sort_by']];
 				array_multisort($sortAux2, $this->config['sort_order'], $imgs);
 			}
 
 			// Calculate pages
-			$page_count = (int) ceil(($count_dirs + $count_imgs) / $this->config['thumbs_per_page']);
-			$this->cur_page = $this->cur_page > 0 && $this->cur_page <= $page_count ? $this->cur_page : 1;
+			$this->page_count = (int) ceil(($this->count_dirs + $this->count_imgs) / $this->config['thumbs_per_page']);
+			$this->cur_page = $this->cur_page > 0 && $this->cur_page <= $this->page_count ? $this->cur_page : 1;
 
 			// Merge and slice arrays
-			$items = array_merge($dirs, $imgs);
-			$items = array_slice($items, ($this->cur_page -1) * $this->config['thumbs_per_page'], $this->config['thumbs_per_page']);
-			$item_count = count($items);
-
-			// Create navigation
-			$breadcrumbs = '<p class="img-breadcrumbs">Breadcrumbs: '.$this->breadcrumbs().'</p>';
-			$pagination = $page_count > 1 ? "\n\t\t".'<p class="img-pagination">Pages: '.$this->pagination($page_count).'</p>' : null;
-
-			// Echo, echo~
-			echo "\n\t", '<p class="img-statistics">There '.($count_dirs !== 1 ? 'are '.$count_dirs.' directories' : 'is 1 directory').' and '.
-			     ($count_imgs !== 1 ? $count_imgs.' images' : '1 image').' in this directory.</p>', "\n",
-			     "\n\t", '<div class="img-navigation">', "\n\t\t", $breadcrumbs, $pagination, "\n\t", '</div>', "\n";
-
-			$row_count = 1;
-			if ($item_count > 0)
-			{
-				echo "\n\t", '<div class="img-row">', "\n";
-
-				foreach ($items as $k => $item)
-				{
-					if ($item[0] === 1)
-					{
-						$image_cache_dir = md5($this->cur_directory);
-						$image_thumbnail = $image_cache_dir.'/'.$item[1]; // The name of the thumbnail
-
-						if (!is_dir($this->config['cache_dir'].'/'.$image_cache_dir))
-							mkdir($this->config['cache_dir'].'/'.$image_cache_dir, 0777);
-
-						if (!file_exists($this->config['cache_dir'].'/'.$image_thumbnail))
-							$this->make_thumb($this->cur_directory, $item[1], $image_thumbnail);
-
-						echo "\t\t", '<div class="img-thumbnail img-column-', $row_count, '"><a href="', $this->config['images_url'], '/', $this->cur_directory,
-						     $item[1], '" title="', $item[1], '"><img src="', $this->config['cache_url'], '/', $image_thumbnail,
-						     '" alt="', $image_thumbnail, '" /></a><span>', $this->format_time($item[3]), '</span></div>', "\n";
-					}
-					else
-						echo "\t\t", '<div class="img-directory img-column-', $row_count, '"><a href="',
-						     str_replace('%PATH%',  $this->cur_directory.$item[1], $this->config['main_url']), '/1" title="', $item[1], '">',
-						     $item[1], '</a><span>', $this->format_time($item[3]), '</span></div>', "\n";
-
-					if ($row_count === $this->config['max_thumb_row'] && $k < ($item_count-1))
-					{
-						echo "\t", '</div>', "\n\t", '<div class="img-row">', "\n";
-						$row_count = 0;
-					}
-
-					++$row_count;
-				}
-
-				echo "\t", '</div>', "\n";
-			}
-			else
-				echo "\n\t", '<p class="img-empty-directory">There are no images or directories in this directory.</p>', "\n";
-
-			echo "\n\t", '<div class="clear">&nbsp;</div>', "\n", "\n\t", '<div class="img-navigation">',
-			     $pagination, "\n\t\t", $breadcrumbs, "\n\t", '</div>', "\n";
+			$this->files = array_slice(array_merge($dirs, $imgs), ($this->cur_page -1) * $this->config['thumbs_per_page'], $this->config['thumbs_per_page']);
+			$this->count_files = count($this->files);
 		}
 		else
-			 echo "\n\t", '<p class="img-directory-not-found">This directory does not exist!</p>', "\n";
+			$this->status = 404;
+	}
 
-		echo '</div>', "\n";
+	// Reads the gallery directories and files
+	public function browse()
+	{
+		// Check status code
+		if ($this->status === 404)
+			return '<div id="imgbrowz0r">'."\n\t".'<p class="img-directory-not-found">This directory does not exist!</p>'."\n".'</div>'."\n";
+
+		@set_time_limit(180); // 3 Minutes
+
+		// Start capturing output
+		ob_start();
+
+		echo '<div id="imgbrowz0r">', "\n\t",
+		     '<p class="img-statistics">There ', ($this->count_dirs !== 1 ? 'are '.$this->count_dirs.' directories' : 'is 1 directory'),
+		     ' and ', ($this->count_imgs !== 1 ? $this->count_imgs.' images' : '1 image'), ' in this directory.</p>', "\n", "\n";
+
+		$row_count = 1;
+		if ($this->count_files > 0)
+		{
+			echo "\n\t", '<div class="img-row">', "\n";
+
+			foreach ($this->files as $k => $file)
+			{
+				if ($file[0] === 1)
+				{
+					$image_cache_dir = md5($this->cur_directory);
+					$image_thumbnail = $image_cache_dir.'/'.$file[1]; // The name of the thumbnail
+
+					if (!is_dir($this->config['cache_dir'].'/'.$image_cache_dir))
+						mkdir($this->config['cache_dir'].'/'.$image_cache_dir, 0777);
+
+					if (!file_exists($this->config['cache_dir'].'/'.$image_thumbnail))
+						$this->make_thumb($this->cur_directory, $file[1], $image_thumbnail);
+
+					echo "\t\t", '<div class="img-thumbnail img-column-', $row_count, '"><a href="', $this->config['images_url'], '/', $this->cur_directory,
+					     $file[1], '" title="', $file[1], '"><img src="', $this->config['cache_url'], '/', $image_thumbnail,
+					     '" alt="', $image_thumbnail, '" /></a><span>', $this->format_time($file[3]), '</span></div>', "\n";
+				}
+				else
+					echo "\t\t", '<div class="img-directory img-column-', $row_count, '"><a href="',
+					     str_replace('%PATH%',  $this->cur_directory.$file[1], $this->config['main_url']), '/1" title="', $file[1], '">',
+					     $file[1], '</a><span>', $this->format_time($file[3]), '</span></div>', "\n";
+
+				if ($row_count === $this->config['max_thumb_row'] && $k < ($this->count_files-1))
+				{
+					echo "\t", '</div>', "\n\t", '<div class="img-row">', "\n";
+					$row_count = 0;
+				}
+
+				++$row_count;
+			}
+
+			echo "\t", '</div>', "\n";
+		}
+		else
+			echo "\n\t", '<p class="img-empty-directory">There are no images or directories in this directory.</p>', "\n";
+
+		echo "\n\t", '<div class="clear">&nbsp;</div>', "\n", "\n", '</div>', "\n";
 
 		// Stop capturing output
 		$output = ob_get_contents();
@@ -264,8 +261,12 @@ html body span.clear { background: none;border: 0;clear: both;display: block;flo
 	}
 
 	// Generate breadcrumbs
-	private function breadcrumbs()
+	public function breadcrumbs()
 	{
+		// Check status code
+		if ($this->status === 404)
+			return;
+
 		$path_parts = $this->cur_directory !== false ? explode('/', trim($this->cur_directory, '/')) : array();
 		$count_path = count($path_parts);
 
@@ -273,46 +274,52 @@ html body span.clear { background: none;border: 0;clear: both;display: block;flo
 			for ($x=0; $x < $count_path; ++$x)
 				$output[] = '<a href="index.php?q='.implode('/', array_slice($path_parts, 0, ($x+1))).'/1">'.$path_parts[$x].'</a>';
 
-		return '<a href="'.str_replace('%PATH%',  '0/1', $this->config['main_url']).'">root</a>'.(isset($output) ? ' / '.implode(' / ', $output) : null);
+		return '<div class="img-breadcrumbs"><span>Breadcrumbs: </span><a href="'.str_replace('%PATH%',  '0/1', $this->config['main_url']).'">Root</a>'.
+		       (isset($output) ? ' / '.implode(' / ', $output) : null).'</div>';
 	}
 
 	// Generate page navigation
-	private function pagination($page_count)
+	public function pagination()
 	{
+		// Check status code and page count
+		if ($this->status === 404 || $this->page_count < 2)
+			return;
+
 		$cur_dir = $this->cur_directory !== false ? trim($this->cur_directory, '/') : 0;
 
 		// Previous and next links
 		$prev = $this->cur_page > 1 ? '<a href="'.str_replace('%PATH%',  $cur_dir.'/'.($this->cur_page - 1), $this->config['main_url']).'">&laquo;</a>' : null;
-		$next = $this->cur_page < $page_count ? '<a href="'.str_replace('%PATH%',  $cur_dir.'/'.($this->cur_page + 1), $this->config['main_url']).'">&raquo;</a>' : null;
+		$next = $this->cur_page < $this->page_count ? '<a href="'.str_replace('%PATH%',  $cur_dir.'/'.($this->cur_page + 1), $this->config['main_url']).'">&raquo;</a>' : null;
 
 		// First and last page
-		$first = $this->cur_page === 1 ? '<span class="img-current-page"><strong>1</strong></span>' : '<a href="'.str_replace('%PATH%',  $cur_dir.'/1', $this->config['main_url']).'">1</a>';
-		$last = $this->cur_page === $page_count ? '<strong>'.$page_count.'</strong>' : '<a href="'.str_replace('%PATH%',  $cur_dir.'/'.$page_count, $this->config['main_url']).'">'.$page_count.'</a>';
+		$first = $this->cur_page === 1 ? '<strong class="img-current-page">1</strong>' : '<a href="'.str_replace('%PATH%',  $cur_dir.'/1', $this->config['main_url']).'">1</a>';
+		$last = $this->cur_page === $this->page_count ? '<strong class="img-current-page">'.$this->page_count.'</strong>' : '<a href="'.str_replace('%PATH%',  $cur_dir.'/'.$this->page_count, $this->config['main_url']).'">'.$this->page_count.'</a>';
 
 		// Other pages
-		if ($page_count > 5)
+		if ($this->page_count > 5)
 		{
 			$start = $this->cur_page - 2 > 2 ? $this->cur_page - 2 : 2;
-			$end = $this->cur_page + 2 < $page_count - 1 ? $this->cur_page + 2 : $page_count-1;
+			$end = $this->cur_page + 2 < $this->page_count - 1 ? $this->cur_page + 2 : $this->page_count-1;
 			if ($this->cur_page === 1) $end += 2;
 
 			for ($x=$start; $x <= $end; ++$x)
 				if ($this->cur_page !== $x)
 					$pages[] = '<a href="'.str_replace('%PATH%',  $cur_dir.'/'.$x, $this->config['main_url']).'">'.$x.'</a>';
 				else
-					$pages[] = '<span class="img-current-page"><strong>'.$x.'</strong></span>';
+					$pages[] = '<strong class="img-current-page">'.$x.'</strong>';
 		}
 		else
 		{
-			$end = $page_count - 1;
-			for ($x=2; $x <= $end; ++$x)
+			$end = $this->page_count;
+			for ($x=2; $x < $end; ++$x)
 				if ($this->cur_page !== $x)
 					$pages[] = '<a href="'.str_replace('%PATH%',  $cur_dir.'/'.$x, $this->config['main_url']).'">'.$x.'</a>';
 				else
-					$pages[] = '<span class="img-current-page"><strong>'.$x.'</strong></span>';
+					$pages[] = '<strong class="img-current-page">'.$x.'</strong>';
 		}
 
-		return $prev.' '.$first.($this->cur_page > 4 ? ' ... ' : ' ').implode(' ', $pages).($this->cur_page < $page_count - 3 ? ' ... ' : ' ').$last.' '.$next;
+		return '<div class="img-pagination"><span>Pages: </span>'.$prev.' '.$first.($this->cur_page > 4 ? ' ... ' : ' ').implode(' ', $pages).
+		       ($this->cur_page < $this->page_count - 3 ? ' ... ' : ' ').$last.' '.$next.'</div>';
 	}
 
 	// The legendary thumbnail generater

@@ -77,7 +77,9 @@ $gallery = new imgbrowz0r($config);
 		a:hover, a:active { color: #333 }
 		strong { font-weight: bold }
 
-		#imgbrowz0r { margin: 0 auto;width: 970px;text-align: left }
+		.imgbrowz0r-navigation, #imgbrowz0r { margin: 0 auto;width: 970px;text-align: left }
+		.imgbrowz0r-navigation { padding: 1.5em 0 0.5em }
+
 		#imgbrowz0r .img-row { padding: 0 1em }
 		#imgbrowz0r .img-directory a:link,
 		#imgbrowz0r .img-directory a:visited { font-family: Georgia, "Times New Roman", Times, serif;text-decoration: none }
@@ -97,9 +99,23 @@ $gallery = new imgbrowz0r($config);
 </head>
 <body>
 
-<?php /* Display images and directories */ echo $gallery->browse(); ?>
-
 <?php
+
+// Prepare everything. This function must be called before you call other functions.
+$gallery->init();
+
+// Generate navigation
+$gallery_breadcrumbs = $gallery->breadcrumbs();
+$gallery_pagination = $gallery->pagination();
+
+// Display navigation
+echo '<div class="imgbrowz0r-navigation">', "\n\t", $gallery_breadcrumbs, "\n\t", $gallery_pagination, "\n", '</div>', "\n\n";
+
+// Display images and directories
+echo $gallery->browse();
+
+// Display navigation
+echo '<div class="imgbrowz0r-navigation">', "\n\t", $gallery_pagination, "\n\t", $gallery_breadcrumbs, "\n", '</div>', "\n\n";
 
 // Showing some stats
 echo '<p>Processing time: ', round(get_microtime(microtime()) - get_microtime($start_timer), 5), ' &amp;&amp; Memory usage: ', file_size(memory_get_usage()), '</p>';

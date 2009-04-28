@@ -229,7 +229,7 @@ class imgbrowz0r
 
 						echo "\t\t", '<div class="img-directory img-column-', $row_count, '"><a href="',
 						     str_replace('%PATH%',  $this->cur_directory.$file[1], $this->config['main_url']), '/1"',
-						     $dir_thumbnail, ' title="', $file[1], '"></a><span class="img-dir-name">', $file[1],
+						     $dir_thumbnail, ' title="', $file[1], '">&nbsp;</a><span class="img-dir-name">', $file[1],
 						     '</span><span class="img-thumb-date">', $this->format_time($file[3]), '</span></div>', "\n";
 					}
 					else
@@ -274,7 +274,7 @@ class imgbrowz0r
 #imgbrowz0r .img-column-1 { clear: left }
 
 #imgbrowz0r .img-directory a:link,
-#imgbrowz0r .img-directory a:visited { height: '.($this->config['max_thumb_width'] * 0.8).'px;
+#imgbrowz0r .img-directory a:visited { height: '.($this->config['max_thumb_width'] * 0.8).'px;line-height: '.($this->config['max_thumb_width'] * 0.8 - 10).'px;
                                        background-repeat: no-repeat;background-position: 50% 50% }
 
 /* http://sonspring.com/journal/clearing-floats */

@@ -84,9 +84,18 @@ class imgbrowz0r
 			'enable_dst'               => isset($config['enable_dst']) && $config['enable_dst'] === true ? 1 : 0,
 
 			// Misc settings
-			'ignore_port'              => isset($config['ignore_port']) && $config['ignore_port'] === true  ? true : false
+			'ignore_port'              => isset($config['ignore_port']) && $config['ignore_port'] === true  ? true : false,
+			'dir_thumbs'               => isset($config['dir_thumbs']) && $config['dir_thumbs'] === true  ? true : false,
+			'random_thumbs'            => isset($config['random_thumbs']) && $config['random_thumbs'] === true  ? true : false,
+			'read_thumb_limit'         => isset($config['read_thumb_limit']) && is_numeric($config['read_thumb_limit']) ? intval($config['read_thumb_limit']) : 0
 		);
 
+		if ($this->config['random_thumbs'] === false)
+			$this->config['read_thumb_limit'] = 1;
+	}
+
+	public function init()
+	{
 		// Get current url
 		$protocol = (!isset($_SERVER['HTTPS']) || strtolower($_SERVER['HTTPS']) == 'off') ? 'http://' : 'https://';
 		$port = $this->config['ignore_port'] === false && (isset($_SERVER['SERVER_PORT']) && (($_SERVER['SERVER_PORT'] != '80' && $protocol == 'http://') || ($_SERVER['SERVER_PORT'] != '443' && $protocol == 'https://')) && strpos($_SERVER['HTTP_HOST'], ':') === false) ? ':'.$_SERVER['SERVER_PORT'] : '';
@@ -114,10 +123,7 @@ class imgbrowz0r
 
 		if ($this->cur_directory == '0/' || $this->cur_directory == '/')
 			$this->cur_directory = false;
-	}
 
-	public function init()
-	{
 		$dirs = array();
 		$imgs = array();
 		$full_path = $this->cur_directory === false ? $this->config['images_dir'].'/' : $this->config['images_dir'].'/'.$this->cur_directory;
@@ -212,9 +218,26 @@ class imgbrowz0r
 					     '" alt="', $image_thumbnail, '" /></a><span>', $this->format_time($file[3]), '</span></div>', "\n";
 				}
 				else
-					echo "\t\t", '<div class="img-directory img-column-', $row_count, '"><a href="',
-					     str_replace('%PATH%',  $this->cur_directory.$file[1], $this->config['main_url']), '/1" title="', $file[1], '">',
-					     $file[1], '</a><span>', $this->format_time($file[3]), '</span></div>', "\n";
+				{
+					if ($this->config['dir_thumbs'] === true)
+					{
+						$dir_hash = md5($this->cur_directory.$file[1].'/');
+						$dir_thumbs = $this->read_cache($this->config['cache_dir'].'/'.$dir_hash);
+						$dir_thumbnail = isset($dir_thumbs[0]) ? ' style="background-image: url(\''.$this->config['cache_url'].'/'.
+						                 $dir_hash.'/'.basename($dir_thumbs[($this->config['random_thumbs'] === false ? 0 :
+								 mt_rand(0, count($dir_thumbs)-1))]).'\')"' : null;
+
+						echo "\t\t", '<div class="img-directory img-column-', $row_count, '"><a href="',
+						     str_replace('%PATH%',  $this->cur_directory.$file[1], $this->config['main_url']), '/1"',
+						     $dir_thumbnail, ' title="', $file[1], '"></a><span class="img-dir-name">', $file[1],
+						     '</span><span class="img-thumb-date">', $this->format_time($file[3]), '</span></div>', "\n";
+					}
+					else
+						echo "\t\t", '<div class="img-directory img-column-', $row_count, '"><a href="',
+						     str_replace('%PATH%',  $this->cur_directory.$file[1], $this->config['main_url']), '/1" title="',
+						     $file[1], '"><span>', $file[1],'</span></a><span>', $this->format_time($file[3]),
+						     '</span></div>', "\n";
+				}
 
 				if ($row_count === $this->config['max_thumb_row'] && $k < ($this->count_files-1))
 				{
@@ -230,7 +253,7 @@ class imgbrowz0r
 		else
 			echo "\n\t", '<p class="img-empty-directory">There are no images or directories in this directory.</p>', "\n";
 
-		echo "\n\t", '<div class="clear">&nbsp;</div>', "\n", "\n", '</div>', "\n";
+		echo "\n\t", '<div class="clear">&nbsp;</div>', "\n", '</div>', "\n\n";
 
 		// Stop capturing output
 		$output = ob_get_contents();
@@ -251,7 +274,8 @@ class imgbrowz0r
 #imgbrowz0r .img-column-1 { clear: left }
 
 #imgbrowz0r .img-directory a:link,
-#imgbrowz0r .img-directory a:visited { height: '.($this->config['max_thumb_width'] * 0.8).'px;line-height: '.($this->config['max_thumb_width'] * 0.8 - 10).'px }
+#imgbrowz0r .img-directory a:visited { height: '.($this->config['max_thumb_width'] * 0.8).'px;
+                                       background-repeat: no-repeat;background-position: 50% 50% }
 
 /* http://sonspring.com/journal/clearing-floats */
 html body div.clear,
@@ -285,6 +309,7 @@ html body span.clear { background: none;border: 0;clear: both;display: block;flo
 		if ($this->status === 404 || $this->page_count < 2)
 			return;
 
+		$pages = array();
 		$cur_dir = $this->cur_directory !== false ? trim($this->cur_directory, '/') : 0;
 
 		// Previous and next links
@@ -399,6 +424,33 @@ html body span.clear { background: none;border: 0;clear: both;display: block;flo
 
 		// Destroy
 		imagedestroy($thumbnail);
+	}
+
+	private function read_cache($path)
+	{
+		if (is_dir($path) && ($handle = opendir($path)))
+		{
+			$thumbnails = array();
+			$file_count = 0;
+
+			while (($file = readdir($handle)) !== false)
+			{
+				$thumb_extension = $this->get_ext($file);
+				if (!in_array($thumb_extension, array('gif', 'jpg', 'jpeg', 'jpe', 'jif', 'jfif', 'jfi', 'png')))
+					continue;
+
+				$thumbnails[] = $file;
+				++$file_count;
+
+				if ($file_count === $this->config['read_thumb_limit'])
+					break;
+			}
+
+			closedir($handle);
+			return $thumbnails;
+		}
+		else
+			return false;
 	}
 
 	// Format unix timestamp to a human readable date

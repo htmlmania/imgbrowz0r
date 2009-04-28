@@ -55,7 +55,10 @@ $config = array(
 	'enable_dst'               => false, // Daylight saving time (DST). Set this to true to enable it.
 
 	// Misc settings (optional)
-	'ignore_port'              => false
+	'ignore_port'              => false, // Ignore port in url. Set this to true to ignore the port.
+	'dir_thumbs'               => true, // Show a thumbnail in a category box. Default is false.
+	'random_thumbs'            => false, // Use random thumbnails for categories. Default is false.
+	'read_thumb_limit'         => 0 // See README for information about this setting.
 	);
 
 // Start the class
@@ -85,14 +88,19 @@ $gallery = new imgbrowz0r($config);
 		#imgbrowz0r .img-directory a:visited { font-family: Georgia, "Times New Roman", Times, serif;text-decoration: none }
 
 		#imgbrowz0r .img-thumbnail a:link img,
-		#imgbrowz0r .img-thumbnail a:visited img { border: 1px dashed #aaa }
+		#imgbrowz0r .img-thumbnail a:visited img { border: 1px solid #000 }
 		#imgbrowz0r .img-thumbnail a:hover img,
 		#imgbrowz0r .img-thumbnail a:active img { border-color: #F52542 }
 
 		#imgbrowz0r .img-directory a:link,
-		#imgbrowz0r .img-directory a:visited { background: #111;border: 1px dashed #aaa;font-size: 2.5em;color: #ccc }
+		#imgbrowz0r .img-directory a:visited { background-color: #000;border: 1px solid #000;font-size: 1.5em;color: #ccc }
 		#imgbrowz0r .img-directory a:hover,
 		#imgbrowz0r .img-directory a:active { border-color: #F52542;color: #F52542 }
+
+		#imgbrowz0r .img-directory span.img-dir-name,
+		#imgbrowz0r .img-directory span.img-thumb-date { display: block }
+
+		#imgbrowz0r .img-directory span.img-dir-name { font-weight: bold;font-size: 1.2em }
 
 		<?php /* Output ImgBrowz0r CSS */ echo $gallery->output_style(); ?>
 	</style>

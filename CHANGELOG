@@ -1,6 +1,12 @@
 ImgBrowz0r changelog
 http://61924.nl/projects/imgbrowz0r.html
 
+0.3-dev - May XXth, 2009:
+
+ - Added the random thumbnails again.
+ - "Random thumbnails" can also be disabled now. Instead the same thumbnail will be shown each time or nothing at all.
+ - Added a "read limit" that limits the amount of thumbnails that are used for the random thumbnail fucntion (this can speed things up).
+
 0.3-beta - April 22th, 2009:
 
  - Most of it is rewritten.

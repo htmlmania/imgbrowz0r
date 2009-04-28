@@ -19,3 +19,16 @@ The demo: http://images.61924.nl/
 
 You can take a look at the development progress here:
 http://bitbucket.org/fsx/imgbrowz0r/
+
+# Extra information
+
+Information about certain thing.
+
+## read_thumb_limit
+
+When the "random thumbnail" function is enabled it reads the cache of the current
+category/directory to choose a random thumbnail. If there are a lot thumbnails in
+the cache it will take more time to read all the files in the cache.
+
+You can set this to 10 to speedup the process, but it will only choose a random
+thumbnail of out 10.

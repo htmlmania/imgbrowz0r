@@ -46,7 +46,8 @@ define('IMGBROWZ0R_VERSION', '0.3-dev');
 class imgbrowz0r
 {
 	private $config, $cur_directory, $cur_page, $files, $page_count,
-	        $count_files=0, $count_dirs=0, $count_imgs=0;
+	        $count_files=0, $count_dirs=0, $count_imgs=0,
+		$image_types=array('gif', 'jpg', 'jpeg', 'jpe', 'jif', 'jfif', 'jfi', 'png');
 
 	public $status=200;
 
@@ -145,7 +146,7 @@ class imgbrowz0r
 				{
 					// Check if file is an supported image type
 					$image_extension = $this->get_ext($file);
-					if (!in_array($image_extension, array('gif', 'jpg', 'jpeg', 'jpe', 'jif', 'jfif', 'jfi', 'png')))
+					if (!in_array($image_extension, $this->image_types))
 						continue;
 
 					$imgs[] = array(1, $file, $image_extension, filectime($full_path.'/'.$file));
@@ -205,7 +206,7 @@ class imgbrowz0r
 				if ($file[0] === 1)
 				{
 					$image_cache_dir = md5($this->cur_directory);
-					$image_thumbnail = $image_cache_dir.'/'.$file[1]; // The name of the thumbnail
+					$image_thumbnail = $image_cache_dir.'/'.$file[3].'_'.$file[1]; // The name of the thumbnail
 
 					if (!is_dir($this->config['cache_dir'].'/'.$image_cache_dir))
 						mkdir($this->config['cache_dir'].'/'.$image_cache_dir, 0777);
@@ -351,7 +352,7 @@ html body span.clear { background: none;border: 0;clear: both;display: block;flo
 	private function make_thumb($image_dir, $image_name, $image_thumbnail)
 	{
 		//Check if thumb dir exists
-		if (is_writable($this->config['cache_dir']) && !is_dir($this->config['cache_dir']))
+		if (!is_writable($this->config['cache_dir']) && !is_dir($this->config['cache_dir']))
 			exit('Cache directory does not exist or is not writable!');
 
 		$image_dir = $image_dir !== false ? $image_dir.'/' : null;
@@ -360,7 +361,7 @@ html body span.clear { background: none;border: 0;clear: both;display: block;flo
 		$image_info = $this->get_image_info($this->config['images_dir'].'/'.$image_dir.'/'.$image_name);
 
 		// Check if file is an supported image type
-		if (!in_array($image_info['extension'], array('gif', 'jpg', 'jpeg', 'jpe', 'jif', 'jfif', 'jfi', 'png')))
+		if (!in_array($image_info['extension'], $this->image_types))
 			return false;
 
 		// Open the image so we can make a thumbnail
@@ -423,6 +424,7 @@ html body span.clear { background: none;border: 0;clear: both;display: block;flo
 		}
 
 		// Destroy
+		imagedestroy($image);
 		imagedestroy($thumbnail);
 	}
 
@@ -436,7 +438,7 @@ html body span.clear { background: none;border: 0;clear: both;display: block;flo
 			while (($file = readdir($handle)) !== false)
 			{
 				$thumb_extension = $this->get_ext($file);
-				if (!in_array($thumb_extension, array('gif', 'jpg', 'jpeg', 'jpe', 'jif', 'jfif', 'jfi', 'png')))
+				if (!in_array($thumb_extension, $this->image_types))
 					continue;
 
 				$thumbnails[] = $file;
@@ -470,7 +472,7 @@ html body span.clear { background: none;border: 0;clear: both;display: block;flo
 	// Get extension from filename (returns the extension without the dot)
 	private function get_ext($file_name)
 	{
-		return strtolower(substr($file_name, strrpos($file_name, '.')+1));
+		return strtolower(pathinfo($file_name, PATHINFO_EXTENSION));
 	}
 }
 

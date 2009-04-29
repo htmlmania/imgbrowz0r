@@ -3,9 +3,15 @@ http://61924.nl/projects/imgbrowz0r.html
 
 0.3-dev - May XXth, 2009:
 
+ - The functions that generate the navigation are removed from imgbrowz0r::display() and are now public functions.
+ - Fixed a small bug in the url check part.
  - Added the random thumbnails again.
  - "Random thumbnails" can also be disabled now. Instead the same thumbnail will be shown each time or nothing at all.
  - Added a "read limit" that limits the amount of thumbnails that are used for the random thumbnail fucntion (this can speed things up).
+ - Thumbnails are now refreshed if the orginal image has changed.
+ - The supported file types are now stored in a variable.
+ - Fixed a bug in imgbrowz0r::get_ext().
+ - Fixed a bug in directory check in imgbrowz0r::make_thumb().
 
 0.3-beta - April 22th, 2009:
 

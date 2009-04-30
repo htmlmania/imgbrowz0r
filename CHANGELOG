@@ -1,17 +1,26 @@
 ImgBrowz0r changelog
 http://61924.nl/projects/imgbrowz0r.html
 
-0.3-dev - May XXth, 2009:
+0.3 - April 30th, 2009:
 
- - The functions that generate the navigation are removed from imgbrowz0r::display() and are now public functions.
+ - The functions that generate the navigation are removed from imgbrowz0r::display()
+   and are now public functions.
  - Fixed a small bug in the url check part.
  - Added the random thumbnails again.
- - "Random thumbnails" can also be disabled now. Instead the same thumbnail will be shown each time or nothing at all.
- - Added a "read limit" that limits the amount of thumbnails that are used for the random thumbnail fucntion (this can speed things up).
+ - "Random thumbnails" can also be disabled now. Instead the same thumbnail will
+   be shown each time or nothing at all.
+ - Added a "read limit" that limits the amount of thumbnails that are used for the
+   random thumbnail fucntion (this can speed things up).
  - Thumbnails are now refreshed if the orginal image has changed.
  - The supported file types are now stored in a variable.
  - Fixed a bug in imgbrowz0r::get_ext().
  - Fixed a bug in directory check in imgbrowz0r::make_thumb().
+ - Directory statistics now in a  separate function, imgbrowz0r::statistics().
+ - Removed check if GD extension is loaded. gd_info() function check is enough.
+ - Removed imgbrowz0r::output_style().
+ - Cleaned up page navigation generator.
+ - Replaced some hard-coded values for the thumbnail height and width with variables
+   in imgbrowz0r::make_thumb().
 
 0.3-beta - April 22th, 2009:
 
@@ -37,8 +46,10 @@ http://61924.nl/projects/imgbrowz0r.html
 0.2.2 - September 26th, 2008:
 
  - Better file check.
- - Category names with non-latin characters now supported (see manual for more information). Patch provided by Serge Timakov.
- - Fixed bug in make_thumb(). Thumbnails of square images (images with dimensions like 600*600px) weren't resized.
+ - Category names with non-latin characters now supported (see manual for more
+   information). Patch provided by Serge Timakov.
+ - Fixed bug in make_thumb(). Thumbnails of square images (images with dimensions
+   like 600*600px) weren't resized.
  - Removed 'rename file if extension does not match image type' feature.
  - Added 'IMGBROWZ0R_VERSION' constant which contains the software version.
 
@@ -47,7 +58,10 @@ http://61924.nl/projects/imgbrowz0r.html
 
  - Use of gmdate() instead of date() in $this->format_time().
  - mkdir() now makes thumbs folder with chmod 0777 instead of 0700 in $this->make_thumb().
- - Fixed sorting bug in $this->view_categories(). Bug appeared when only one empty folder in the gallery folder.
+ - Fixed sorting bug in $this->view_categories(). Bug appeared when only one empty
+   folder in the gallery folder.
  - $this->g_category is now false instead of empty when $_GET['c'] is ot set.
- - Removed unset()'s right before the return from $this->view_categories() and $this->view_images().
- - Made self::safe_url(), self::base64_url_encode(), self::base64_url_decode() and self::get_ext() static.
+ - Removed unset()'s right before the return from $this->view_categories() and
+   $this->view_images().
+ - Made self::safe_url(), self::base64_url_encode(), self::base64_url_decode() and
+   self::get_ext() static.

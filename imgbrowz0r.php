@@ -3,7 +3,7 @@
 /* ---
 
 	ImgBrowz0r, a simple PHP5 Gallery class
-	Version 0.3-dev, May ??th, 2009
+	Version 0.3, April 30th, 2009
 	http://61924.nl/projects/imgbrowz0r.html
 
 	Copyright (c) 2008-2009 Frank Smit
@@ -30,24 +30,13 @@
 
 --- */
 
-/* ---
-
-	THIS IS A DEVELOPMENT VERSION!
-
-	That means that it's not complete yet and there may be some bugs.
-	But that does not mean you should not use it. Instead you should
-	use and test it and report bugs and request features (but remind
-	that this class must stay simple) so I can improve it. :D
-
---- */
-
-define('IMGBROWZ0R_VERSION', '0.3-dev');
+define('IMGBROWZ0R_VERSION', '0.3');
 
 class imgbrowz0r
 {
 	private $config, $cur_directory, $cur_page, $files, $page_count,
 	        $count_files=0, $count_dirs=0, $count_imgs=0,
-		$image_types=array('gif', 'jpg', 'jpeg', 'jpe', 'jif', 'jfif', 'jfi', 'png');
+		$image_types=array('gif', 'jpg', 'jpeg', 'jpe', 'jif', 'jfif', 'jfi', 'png'); // All image types that browsers support
 
 	public $status=200;
 
@@ -55,7 +44,7 @@ class imgbrowz0r
 	public function __construct($config)
 	{
 		// First check if GD is enabled
-		if (!extension_loaded('gd') && !function_exists('gd_info'))
+		if (!function_exists('gd_info'))
 			exit('<p><a href="http://www.php.net/manual/en/book.image.php">GD</a> is not enabled!</p>');
 
 		// Set configuration
@@ -88,7 +77,7 @@ class imgbrowz0r
 			'ignore_port'              => isset($config['ignore_port']) && $config['ignore_port'] === true  ? true : false,
 			'dir_thumbs'               => isset($config['dir_thumbs']) && $config['dir_thumbs'] === true  ? true : false,
 			'random_thumbs'            => isset($config['random_thumbs']) && $config['random_thumbs'] === true  ? true : false,
-			'read_thumb_limit'         => isset($config['read_thumb_limit']) && is_numeric($config['read_thumb_limit']) ? intval($config['read_thumb_limit']) : 0
+			'read_thumb_limit'         => isset($config['read_thumb_limit']) && is_numeric($config['read_thumb_limit']) ? $config['read_thumb_limit'] : 0
 		);
 
 		if ($this->config['random_thumbs'] === false)
@@ -98,8 +87,10 @@ class imgbrowz0r
 	public function init()
 	{
 		// Get current url
-		$protocol = (!isset($_SERVER['HTTPS']) || strtolower($_SERVER['HTTPS']) == 'off') ? 'http://' : 'https://';
-		$port = $this->config['ignore_port'] === false && (isset($_SERVER['SERVER_PORT']) && (($_SERVER['SERVER_PORT'] != '80' && $protocol == 'http://') || ($_SERVER['SERVER_PORT'] != '443' && $protocol == 'https://')) && strpos($_SERVER['HTTP_HOST'], ':') === false) ? ':'.$_SERVER['SERVER_PORT'] : '';
+		$protocol = !isset($_SERVER['HTTPS']) || strtolower($_SERVER['HTTPS']) == 'off' ? 'http://' : 'https://';
+		$port = $this->config['ignore_port'] === false && (isset($_SERVER['SERVER_PORT']) && (($_SERVER['SERVER_PORT'] != '80'
+		        && $protocol == 'http://') || ($_SERVER['SERVER_PORT'] != '443' && $protocol == 'https://'))
+			&& strpos($_SERVER['HTTP_HOST'], ':') === false) ? ':'.$_SERVER['SERVER_PORT'] : '';
 		$current_url = urldecode($protocol.$_SERVER['HTTP_HOST'].$port.$_SERVER['REQUEST_URI']);
 
 		// Regex
@@ -125,8 +116,7 @@ class imgbrowz0r
 		if ($this->cur_directory == '0/' || $this->cur_directory == '/')
 			$this->cur_directory = false;
 
-		$dirs = array();
-		$imgs = array();
+		$dirs = $imgs = array();
 		$full_path = $this->cur_directory === false ? $this->config['images_dir'].'/' : $this->config['images_dir'].'/'.$this->cur_directory;
 
 		if (is_dir($full_path) && ($handle = opendir($full_path)))
@@ -192,9 +182,7 @@ class imgbrowz0r
 		// Start capturing output
 		ob_start();
 
-		echo '<div id="imgbrowz0r">', "\n\t",
-		     '<p class="img-statistics">There ', ($this->count_dirs !== 1 ? 'are '.$this->count_dirs.' directories' : 'is 1 directory'),
-		     ' and ', ($this->count_imgs !== 1 ? $this->count_imgs.' images' : '1 image'), ' in this directory.</p>', "\n", "\n";
+		echo '<div id="imgbrowz0r">';
 
 		$row_count = 1;
 		if ($this->count_files > 0)
@@ -263,26 +251,14 @@ class imgbrowz0r
 		return $output;
 	}
 
-	// Create css rules
-	public function output_style()
+	public function statistics()
 	{
-		return '
-#imgbrowz0r .img-thumbnail a,
-#imgbrowz0r .img-directory a { display: block;margin: 0 auto;width: '.$this->config['max_thumb_width'].'px }
+		// Check status code
+		if ($this->status === 404)
+			return;
 
-#imgbrowz0r .img-thumbnail,
-#imgbrowz0r .img-directory { float: left;padding: 1.5em 0;width: '.(round(100 / $this->config['max_thumb_row'], 2)).'%;text-align: center }
-#imgbrowz0r .img-column-1 { clear: left }
-
-#imgbrowz0r .img-directory a:link,
-#imgbrowz0r .img-directory a:visited { height: '.($this->config['max_thumb_width'] * 0.8).'px;line-height: '.($this->config['max_thumb_width'] * 0.8 - 10).'px;
-                                       background-repeat: no-repeat;background-position: 50% 50% }
-
-/* http://sonspring.com/journal/clearing-floats */
-html body div.clear,
-html body span.clear { background: none;border: 0;clear: both;display: block;float: none;font-size: 0;list-style: none;
-                       margin: 0;padding: 0;overflow: hidden;visibility: hidden;width: 0;height: 0 }
-';
+		return '<div class="img-statistics">There '.($this->count_dirs !== 1 ? 'are '.$this->count_dirs.' directories' : 'is 1 directory').
+		       ' and '.($this->count_imgs !== 1 ? $this->count_imgs.' images' : '1 image').' in this directory.</div>';
 	}
 
 	// Generate breadcrumbs
@@ -311,7 +287,8 @@ html body span.clear { background: none;border: 0;clear: both;display: block;flo
 			return;
 
 		$pages = array();
-		$cur_dir = $this->cur_directory !== false ? trim($this->cur_directory, '/') : 0;
+		$cur_dir = $this->cur_directory !== false ? rtrim($this->cur_directory, '/') : 0;
+		$current_range = array(($this->cur_page < 5 ? 2 : $this->cur_page-3), ($this->cur_page+3 >= $this->page_count ? $this->page_count-1 : $this->cur_page+3));
 
 		// Previous and next links
 		$prev = $this->cur_page > 1 ? '<a href="'.str_replace('%PATH%',  $cur_dir.'/'.($this->cur_page - 1), $this->config['main_url']).'">&laquo;</a>' : null;
@@ -322,30 +299,11 @@ html body span.clear { background: none;border: 0;clear: both;display: block;flo
 		$last = $this->cur_page === $this->page_count ? '<strong class="img-current-page">'.$this->page_count.'</strong>' : '<a href="'.str_replace('%PATH%',  $cur_dir.'/'.$this->page_count, $this->config['main_url']).'">'.$this->page_count.'</a>';
 
 		// Other pages
-		if ($this->page_count > 5)
-		{
-			$start = $this->cur_page - 2 > 2 ? $this->cur_page - 2 : 2;
-			$end = $this->cur_page + 2 < $this->page_count - 1 ? $this->cur_page + 2 : $this->page_count-1;
-			if ($this->cur_page === 1) $end += 2;
+		for ($x=$current_range[0];$x <= $current_range[1];++$x)
+			$pages[] = '<a href="'.str_replace('%PATH%',  $cur_dir.'/'.$x, $this->config['main_url']).'">'.($x == $this->cur_page ? '<strong>'.$x.'</strong>' : $x).'</a>';
 
-			for ($x=$start; $x <= $end; ++$x)
-				if ($this->cur_page !== $x)
-					$pages[] = '<a href="'.str_replace('%PATH%',  $cur_dir.'/'.$x, $this->config['main_url']).'">'.$x.'</a>';
-				else
-					$pages[] = '<strong class="img-current-page">'.$x.'</strong>';
-		}
-		else
-		{
-			$end = $this->page_count;
-			for ($x=2; $x < $end; ++$x)
-				if ($this->cur_page !== $x)
-					$pages[] = '<a href="'.str_replace('%PATH%',  $cur_dir.'/'.$x, $this->config['main_url']).'">'.$x.'</a>';
-				else
-					$pages[] = '<strong class="img-current-page">'.$x.'</strong>';
-		}
-
-		return '<div class="img-pagination"><span>Pages: </span>'.$prev.' '.$first.($this->cur_page > 4 ? ' ... ' : ' ').implode(' ', $pages).
-		       ($this->cur_page < $this->page_count - 3 ? ' ... ' : ' ').$last.' '.$next.'</div>';
+		return '<div class="img-pagination"><span>Pages: </span>'.$prev.' '.$first.($this->cur_page > 5 ? ' ... ' : ' ').implode(' ', $pages).
+		       ($this->cur_page < $this->page_count - 4 ? ' ... ' : ' ').$last.' '.$next.'</div>';
 	}
 
 	// The legendary thumbnail generater
@@ -356,8 +314,6 @@ html body span.clear { background: none;border: 0;clear: both;display: block;flo
 			exit('Cache directory does not exist or is not writable!');
 
 		$image_dir = $image_dir !== false ? $image_dir.'/' : null;
-
-		// Get image information
 		$image_info = $this->get_image_info($this->config['images_dir'].'/'.$image_dir.'/'.$image_name);
 
 		// Check if file is an supported image type
@@ -368,19 +324,19 @@ html body span.clear { background: none;border: 0;clear: both;display: block;flo
 		if ($image_info['type'] == 3)
 			$image = imagecreatefrompng($this->config['images_dir'].'/'.$image_dir.$image_name);
 		else if ($image_info['type'] == 2)
-			$image = imagecreatefromjpeg($this->config['images_dir'].'/'.$image_dir.'/'.$image_name);
+			$image = imagecreatefromjpeg($this->config['images_dir'].'/'.$image_dir.$image_name);
 		else if ($image_info['type'] == 1)
-			$image = imagecreatefromgif($this->config['images_dir'].'/'.$image_dir.'/'.$image_name);
+			$image = imagecreatefromgif($this->config['images_dir'].'/'.$image_dir.$image_name);
 		else
 			return false;
 
 		// Calculate new width and height
-		$zoomw = $image_info['width'] / 200;
-		$zoomh = $image_info['height'] / 200;
+		$zoomw = $image_info['width'] / $this->config['max_thumb_width'];
+		$zoomh = $image_info['height'] / $this->config['max_thumb_height'];
 
 		$zoom = ($zoomw > $zoomh) ? $zoomw : $zoomh;
 
-		if ($image_info['width'] < 200 && $image_info['height'] < 200)
+		if ($image_info['width'] < $this->config['max_thumb_width'] && $image_info['height'] < $this->config['max_thumb_height'])
 		{
 			$thumb_width = $image_info['width'];
 			$thumb_height = $image_info['height'];

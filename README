@@ -4,13 +4,14 @@ README
 
 ImgBrowz0r if a class written in PHP5 (tested with 5.2.9) that enables you to set up
 a simple gallery with basic configuration to 10 minutes. It's also possible to integrate
-it into a CMS are your existing website.
+it into a CMS or your existing website. You can also change various other things like
+sorting order and thumbnail sizes (etc. etc.).
 
-It does things like generating thumbnails, page navigation, breadcrumbs and outputs
-XHTML that is provided with classes and ID so everything can be extended and changed
+It does things like generating thumbnails, generating pagination/breadcrumbs and outputs
+XHTML that is provided with classes and ID's so everything can be extended and changed
 with Javascript and CSS.
 
-The only things you have to do is install it and upload your images. And maybe clean
+The only thing you have to do is install it and upload your images. And maybe clean
 the cache once in a while.
 
 # Features
@@ -28,11 +29,14 @@ the cache once in a while.
  - Div (<div>) based layout for the gallery.
  - Images (and the cache) can be stored on different locations/(sub)domains on the
    server as long it's reachable by the browser.
+ - Support for gif, jpg, jpeg, jpe, jif, jfif, jfi and png images.
+ - Page navigation and breadcrumbs.
 
 # Get it running
 
+ - Drop the files from this package into a web accessible directory.
  - Make two directories named "images" and "cache" in the ImgBrowz0r directory.
- - Make "cache" writable.
+ - Make "cache" writable (linux command: chmod -R 0777 cache).
  - Drop some images and directories in "images".
 
 That's a really basic setup. It's recommended to play with the condiguration

@@ -35,7 +35,7 @@ define('IMGBROWZ0R_VERSION', '0.3');
 class imgbrowz0r
 {
 	private $config, $cur_directory, $cur_page, $files, $page_count,
-	        $count_files=0, $count_dirs=0, $count_imgs=0,
+	        $count_files=0, $count_dirs=0, $count_imgs=0, $full_path,
 		$image_types=array('gif', 'jpg', 'jpeg', 'jpe', 'jif', 'jfif', 'jfi', 'png'); // All image types that browsers support
 
 	public $status=200;
@@ -117,20 +117,20 @@ class imgbrowz0r
 			$this->cur_directory = false;
 
 		$dirs = $imgs = array();
-		$full_path = $this->cur_directory === false ? $this->config['images_dir'].'/' : $this->config['images_dir'].'/'.$this->cur_directory;
+		$this->full_path = $this->cur_directory === false ? $this->config['images_dir'].'/' : $this->config['images_dir'].'/'.$this->cur_directory;
 
-		if (is_dir($full_path) && ($handle = opendir($full_path)))
+		if (is_dir($this->full_path) && ($handle = opendir($this->full_path)))
 		{
 			// Scan directories and files
 			while (($file = readdir($handle)) !== false)
 			{
-				if (is_dir($full_path.'/'.$file))
+				if (is_dir($this->full_path.'/'.$file))
 				{
 					// Exclude . and ..
 					if ($file == '.' || $file == '..')
 						continue;
 
-					$dirs[] = array(0, $file, 'dir', filectime($full_path.'/'.$file));
+					$dirs[] = array(0, $file, 'dir', filectime($this->full_path.'/'.$file));
 				}
 				else
 				{
@@ -139,7 +139,7 @@ class imgbrowz0r
 					if (!in_array($image_extension, $this->image_types))
 						continue;
 
-					$imgs[] = array(1, $file, $image_extension, filectime($full_path.'/'.$file));
+					$imgs[] = array(1, $file, $image_extension, filectime($this->full_path.'/'.$file));
 				}
 			}
 
@@ -304,6 +304,19 @@ class imgbrowz0r
 
 		return '<div class="img-pagination"><span>Pages: </span>'.$prev.' '.$first.($this->cur_page > 5 ? ' ... ' : ' ').implode(' ', $pages).
 		       ($this->cur_page < $this->page_count - 4 ? ' ... ' : ' ').$last.' '.$next.'</div>';
+	}
+
+	// Display description of the current directory
+	// Html tags are stripped from the description except the following tags:
+	// <p>, <strong>, <em>, <a>, <br />, <h1>, <h2> and <h3>
+	public function description()
+	{
+		if (file_exists($this->full_path.'.desc'))
+			return '<div class="img-description">'.
+			strip_tags(file_get_contents($this->full_path.'.desc'), '<p><strong><em><a><br><h1><h2><h3>').
+			'</div>';
+		else
+			return null;
 	}
 
 	// The legendary thumbnail generater

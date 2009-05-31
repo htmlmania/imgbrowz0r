@@ -82,9 +82,11 @@ $gallery = new imgbrowz0r($config);
 		strong { font-weight: bold }
 
 		/* This is some example CSS. You can change this to your own liking. */
-		.imgbrowz0r-navigation, #imgbrowz0r { margin: 0 auto;width: 970px;text-align: left }
+		.img-description, .imgbrowz0r-navigation, #imgbrowz0r { margin: 0 auto;width: 970px;text-align: left }
 		.imgbrowz0r-navigation { padding: 1.5em 0 0.5em }
 		.imgbrowz0r-navigation .img-statistics { margin-top: 1.5em }
+
+		.img-description { margin: 1.5em auto 0 }
 
 		#imgbrowz0r .img-row { padding: 0 1em }
 		#imgbrowz0r .img-directory a:link,
@@ -132,6 +134,9 @@ $gallery->init();
 $gallery_breadcrumbs = $gallery->breadcrumbs();
 $gallery_pagination = $gallery->pagination();
 $gallery_statistics = $gallery->statistics();
+
+// Display description of the current directory (optional).
+echo $gallery->description();
 
 // Display navigation
 echo '<div class="imgbrowz0r-navigation">', "\n\t", $gallery_breadcrumbs, "\n\t", $gallery_pagination, "\n\t", $gallery_statistics, "\n", '</div>', "\n\n";

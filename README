@@ -2,9 +2,9 @@ README
 
 # Introduction
 
-ImgBrowz0r if a class written in PHP5 (tested with 5.2.9) that enables you to set up
-a simple gallery with basic configuration to 10 minutes. It's also possible to integrate
-it into a CMS or your existing website. You can also change various other things like
+ImgBrowz0r is a class written in PHP5 (tested with 5.2.9) that enables you to set up
+a simple gallery with basic configuration in 10 minutes. It's also possible to integrate
+it into a CMS or your existing website. You can also configure various other things like
 sorting order and thumbnail sizes (etc. etc.).
 
 It does things like generating thumbnails, generating pagination/breadcrumbs and outputs
@@ -68,3 +68,19 @@ Information about certain things.
 
   You can set this to 10 to speedup the process, but it will only choose a random
   thumbnail of out 10.
+
+  ## Description for directories
+
+  With imgbrowz0r::description() you can search for a description in the currently
+  viewed directory. The function return the content of the description file when it
+  found it and "null" is returned when nothing is found.
+
+  You can add a description to a directory by adding a .desc file in the directory
+  and put your description in that file.
+
+  Html tags are stripped from the description except the following tags:
+  <p>, <strong>, <em>, <a>, <br />, <h1>, <h2> and <h3>
+
+   - Use valid HTML in your description to avoid unexpected behaviour.
+   - Look for more info at:
+     http://php.net/manual/en/function.strip-tags.php

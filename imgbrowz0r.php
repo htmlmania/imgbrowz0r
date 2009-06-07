@@ -3,7 +3,7 @@
 /* ---
 
 	ImgBrowz0r, a simple PHP5 Gallery class
-	Version 0.3, April 30th, 2009
+	Version 0.3.1, June 7th, 2009
 	http://61924.nl/projects/imgbrowz0r.html
 
 	Copyright (c) 2008-2009 Frank Smit
@@ -30,7 +30,7 @@
 
 --- */
 
-define('IMGBROWZ0R_VERSION', '0.3');
+define('IMGBROWZ0R_VERSION', '0.3.1');
 
 class imgbrowz0r
 {
@@ -77,7 +77,8 @@ class imgbrowz0r
 			'ignore_port'              => isset($config['ignore_port']) && $config['ignore_port'] === true  ? true : false,
 			'dir_thumbs'               => isset($config['dir_thumbs']) && $config['dir_thumbs'] === true  ? true : false,
 			'random_thumbs'            => isset($config['random_thumbs']) && $config['random_thumbs'] === true  ? true : false,
-			'read_thumb_limit'         => isset($config['read_thumb_limit']) && is_numeric($config['read_thumb_limit']) ? $config['read_thumb_limit'] : 0
+			'read_thumb_limit'         => isset($config['read_thumb_limit']) && is_numeric($config['read_thumb_limit'])
+			                              && $config['read_thumb_limit'] >= 0 ? $config['read_thumb_limit'] : 0
 		);
 
 		if ($this->config['random_thumbs'] === false)
@@ -163,7 +164,7 @@ class imgbrowz0r
 			$this->cur_page = $this->cur_page > 0 && $this->cur_page <= $this->page_count ? $this->cur_page : 1;
 
 			// Merge and slice arrays
-			$this->files = array_slice(array_merge($dirs, $imgs), ($this->cur_page -1) * $this->config['thumbs_per_page'], $this->config['thumbs_per_page']);
+			$this->files = array_slice(array_merge($dirs, $imgs), ($this->cur_page-1) * $this->config['thumbs_per_page'], $this->config['thumbs_per_page']);
 			$this->count_files = count($this->files);
 		}
 		else
@@ -177,84 +178,74 @@ class imgbrowz0r
 		if ($this->status === 404)
 			return '<div id="imgbrowz0r">'."\n\t".'<p class="img-directory-not-found">This directory does not exist!</p>'."\n".'</div>'."\n";
 
+		if ($this->count_files < 1)
+			return '<div id="imgbrowz0r">'."\n\t".'<p class="img-empty-directory">There are no images or directories in this directory.</p>'."\n".'</div>'."\n";
+
 		@set_time_limit(180); // 3 Minutes
+		$row_count = 1;
 
 		// Start capturing output
 		ob_start();
+		echo '<div id="imgbrowz0r">', "\n\t", '<div class="img-row">', "\n";
 
-		echo '<div id="imgbrowz0r">';
-
-		$row_count = 1;
-		if ($this->count_files > 0)
+		foreach ($this->files as $k => $file)
 		{
-			echo "\n\t", '<div class="img-row">', "\n";
-
-			foreach ($this->files as $k => $file)
+			if ($file[0] === 1)
 			{
-				if ($file[0] === 1)
+				$image_cache_dir = md5($this->cur_directory);
+				$image_thumbnail = $image_cache_dir.'/'.$file[3].'_'.$file[1]; // The name of the thumbnail
+
+				if (!is_dir($this->config['cache_dir'].'/'.$image_cache_dir))
+					mkdir($this->config['cache_dir'].'/'.$image_cache_dir, 0777);
+
+				if (!file_exists($this->config['cache_dir'].'/'.$image_thumbnail))
+					$this->make_thumb($this->cur_directory, $file[1], $image_thumbnail);
+
+				echo "\t\t", '<div class="img-thumbnail img-column-', $row_count, '"><a href="', $this->config['images_url'], '/', $this->cur_directory,
+				     $file[1], '" title="', $file[1], '"><img src="', $this->config['cache_url'], '/', $image_thumbnail,
+				     '" alt="', $image_thumbnail, '" /></a><span>', $this->format_time($file[3]), '</span></div>', "\n";
+			}
+			else
+			{
+				if ($this->config['dir_thumbs'] === true)
 				{
-					$image_cache_dir = md5($this->cur_directory);
-					$image_thumbnail = $image_cache_dir.'/'.$file[3].'_'.$file[1]; // The name of the thumbnail
+					$dir_hash = md5($this->cur_directory.$file[1].'/');
+					$dir_thumbs = $this->read_cache($this->config['cache_dir'].'/'.$dir_hash);
+					$dir_thumbnail = isset($dir_thumbs[0]) ? ' style="background-image: url(\''.$this->config['cache_url'].'/'.
+					                 $dir_hash.'/'.basename($dir_thumbs[($this->config['random_thumbs'] === false ? 0 :
+							 mt_rand(0, count($dir_thumbs)-1))]).'\')"' : null;
 
-					if (!is_dir($this->config['cache_dir'].'/'.$image_cache_dir))
-						mkdir($this->config['cache_dir'].'/'.$image_cache_dir, 0777);
-
-					if (!file_exists($this->config['cache_dir'].'/'.$image_thumbnail))
-						$this->make_thumb($this->cur_directory, $file[1], $image_thumbnail);
-
-					echo "\t\t", '<div class="img-thumbnail img-column-', $row_count, '"><a href="', $this->config['images_url'], '/', $this->cur_directory,
-					     $file[1], '" title="', $file[1], '"><img src="', $this->config['cache_url'], '/', $image_thumbnail,
-					     '" alt="', $image_thumbnail, '" /></a><span>', $this->format_time($file[3]), '</span></div>', "\n";
+					echo "\t\t", '<div class="img-directory img-column-', $row_count, '"><a href="',
+					     str_replace('%PATH%',  $this->cur_directory.$file[1], $this->config['main_url']), '/1"',
+					     $dir_thumbnail, ' title="', $file[1], '">&nbsp;</a><span class="img-dir-name">', $file[1],
+					     '</span><span class="img-thumb-date">', $this->format_time($file[3]), '</span></div>', "\n";
 				}
 				else
-				{
-					if ($this->config['dir_thumbs'] === true)
-					{
-						$dir_hash = md5($this->cur_directory.$file[1].'/');
-						$dir_thumbs = $this->read_cache($this->config['cache_dir'].'/'.$dir_hash);
-						$dir_thumbnail = isset($dir_thumbs[0]) ? ' style="background-image: url(\''.$this->config['cache_url'].'/'.
-						                 $dir_hash.'/'.basename($dir_thumbs[($this->config['random_thumbs'] === false ? 0 :
-								 mt_rand(0, count($dir_thumbs)-1))]).'\')"' : null;
-
-						echo "\t\t", '<div class="img-directory img-column-', $row_count, '"><a href="',
-						     str_replace('%PATH%',  $this->cur_directory.$file[1], $this->config['main_url']), '/1"',
-						     $dir_thumbnail, ' title="', $file[1], '">&nbsp;</a><span class="img-dir-name">', $file[1],
-						     '</span><span class="img-thumb-date">', $this->format_time($file[3]), '</span></div>', "\n";
-					}
-					else
-						echo "\t\t", '<div class="img-directory img-column-', $row_count, '"><a href="',
-						     str_replace('%PATH%',  $this->cur_directory.$file[1], $this->config['main_url']), '/1" title="',
-						     $file[1], '"><span>', $file[1],'</span></a><span>', $this->format_time($file[3]),
-						     '</span></div>', "\n";
-				}
-
-				if ($row_count === $this->config['max_thumb_row'] && $k < ($this->count_files-1))
-				{
-					echo "\t", '</div>', "\n\t", '<div class="img-row">', "\n";
-					$row_count = 0;
-				}
-
-				++$row_count;
+					echo "\t\t", '<div class="img-directory img-column-', $row_count, '"><a href="',
+					     str_replace('%PATH%',  $this->cur_directory.$file[1], $this->config['main_url']), '/1" title="',
+					     $file[1], '"><span>', $file[1],'</span></a><span>', $this->format_time($file[3]),
+					     '</span></div>', "\n";
 			}
 
-			echo "\t", '</div>', "\n";
-		}
-		else
-			echo "\n\t", '<p class="img-empty-directory">There are no images or directories in this directory.</p>', "\n";
+			if ($row_count === $this->config['max_thumb_row'] && $k < ($this->count_files-1))
+			{
+				echo "\t", '</div>', "\n\t", '<div class="img-row">', "\n";
+				$row_count = 0;
+			}
 
-		echo "\n\t", '<div class="clear">&nbsp;</div>', "\n", '</div>', "\n\n";
+			++$row_count;
+		}
+
+		echo "\t", '</div>', "\n\n\t", '<div class="clear">&nbsp;</div>', "\n", '</div>', "\n\n";
 
 		// Stop capturing output
-		$output = ob_get_contents();
-		ob_end_clean();
-
-		return $output;
+		return ob_get_clean();
 	}
 
 	public function statistics()
 	{
 		// Check status code
-		if ($this->status === 404)
+		if ($this->status === 404 || $this->count_files < 1)
 			return;
 
 		return '<div class="img-statistics">There '.($this->count_dirs !== 1 ? 'are '.$this->count_dirs.' directories' : 'is 1 directory').
@@ -269,11 +260,10 @@ class imgbrowz0r
 			return;
 
 		$path_parts = $this->cur_directory !== false ? explode('/', trim($this->cur_directory, '/')) : array();
-		$count_path = count($path_parts);
 
-		if ($count_path > 0)
-			for ($x=0; $x < $count_path; ++$x)
-				$output[] = '<a href="index.php?q='.implode('/', array_slice($path_parts, 0, ($x+1))).'/1">'.$path_parts[$x].'</a>';
+		if (isset($path_parts[0]))
+			foreach ($path_parts as $k => $part)
+				$output[] = '<a href="index.php?q='.implode('/', array_slice($path_parts, 0, ($k+1))).'/1">'.$part.'</a>';
 
 		return '<div class="img-breadcrumbs"><span>Breadcrumbs: </span><a href="'.str_replace('%PATH%',  '0/1', $this->config['main_url']).'">Root</a>'.
 		       (isset($output) ? ' / '.implode(' / ', $output) : null).'</div>';
@@ -296,7 +286,8 @@ class imgbrowz0r
 
 		// First and last page
 		$first = $this->cur_page === 1 ? '<strong class="img-current-page">1</strong>' : '<a href="'.str_replace('%PATH%',  $cur_dir.'/1', $this->config['main_url']).'">1</a>';
-		$last = $this->cur_page === $this->page_count ? '<strong class="img-current-page">'.$this->page_count.'</strong>' : '<a href="'.str_replace('%PATH%',  $cur_dir.'/'.$this->page_count, $this->config['main_url']).'">'.$this->page_count.'</a>';
+		$last = $this->cur_page === $this->page_count ? '<strong class="img-current-page">'.$this->page_count.'</strong>' : '<a href="'.
+		        str_replace('%PATH%',  $cur_dir.'/'.$this->page_count, $this->config['main_url']).'">'.$this->page_count.'</a>';
 
 		// Other pages
 		for ($x=$current_range[0];$x <= $current_range[1];++$x)
@@ -315,15 +306,13 @@ class imgbrowz0r
 			return '<div class="img-description">'.
 			strip_tags(file_get_contents($this->full_path.'.desc'), '<p><strong><em><a><br><h1><h2><h3>').
 			'</div>';
-		else
-			return null;
 	}
 
 	// The legendary thumbnail generater
 	private function make_thumb($image_dir, $image_name, $image_thumbnail)
 	{
 		//Check if thumb dir exists
-		if (!is_writable($this->config['cache_dir']) && !is_dir($this->config['cache_dir']))
+		if (!is_dir($this->config['cache_dir']) || !is_writable($this->config['cache_dir']))
 			exit('Cache directory does not exist or is not writable!');
 
 		$image_dir = $image_dir !== false ? $image_dir.'/' : null;
@@ -434,7 +423,6 @@ class imgbrowz0r
 	private function get_image_info($filepath)
 	{
 		$getimagesize = getimagesize($filepath);
-
 		return array('width' => $getimagesize[0], 'height' => $getimagesize[1], 'type' => $getimagesize[2], 'extension' => $this->get_ext($filepath));
 	}
 

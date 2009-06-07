@@ -1,9 +1,11 @@
 ImgBrowz0r changelog
 http://61924.nl/projects/imgbrowz0r.html
 
-0.3.1 - May XXth, 2009:
+0.3.1 - June 7th, 2009:
 
  - Added imgbrowz0r::description() to display a description. See README for more info.
+ - Statistics are not shown in an empty directory.
+ - Cleaned up code.
 
 0.3 - April 30th, 2009:
 

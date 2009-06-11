@@ -263,7 +263,7 @@ class imgbrowz0r
 
 		if (isset($path_parts[0]))
 			foreach ($path_parts as $k => $part)
-				$output[] = '<a href="index.php?q='.implode('/', array_slice($path_parts, 0, ($k+1))).'/1">'.$part.'</a>';
+				$output[] = '<a href="'.str_replace('%PATH%',  implode('/', array_slice($path_parts, 0, ($k+1))).'/1' , $this->config['main_url']).'">'.$part.'</a>';
 
 		return '<div class="img-breadcrumbs"><span>Breadcrumbs: </span><a href="'.str_replace('%PATH%',  '0/1', $this->config['main_url']).'">Root</a>'.
 		       (isset($output) ? ' / '.implode(' / ', $output) : null).'</div>';

@@ -3,7 +3,7 @@
 /* ---
 
 	ImgBrowz0r, a simple PHP5 Gallery class
-	Version 0.3.1, June 7th, 2009
+	Version 0.3.2, June 14th, 2009
 	http://61924.nl/projects/imgbrowz0r.html
 
 	Copyright (c) 2008-2009 Frank Smit
@@ -30,7 +30,7 @@
 
 --- */
 
-define('IMGBROWZ0R_VERSION', '0.3.1');
+define('IMGBROWZ0R_VERSION', '0.3.2');
 
 class imgbrowz0r
 {

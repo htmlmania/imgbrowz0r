@@ -72,7 +72,7 @@ $gallery = new imgbrowz0r($config);
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 
-	<title>ImgBrowz0r 0.3.1</title>
+	<title>ImgBrowz0r 0.3.2</title>
 
 	<style type="text/css">
 		body { padding: 0;margin:0;text-align: center;font-size:90%;line-height: 1.5;background-color: #fff;font-family: Tahoma, Verdana, sans-serif }

@@ -60,6 +60,12 @@ http://bitbucket.org/fsx/imgbrowz0r/issues/
 
 Information about certain things.
 
+  ## Character blacklist
+
+  Certain characters are not allowed in directory names.
+
+  < > " ' & ;
+
   ## read_thumb_limit
 
   When the "random thumbnail" function is enabled it reads the cache of the current

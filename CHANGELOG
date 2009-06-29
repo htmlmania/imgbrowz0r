@@ -1,6 +1,13 @@
 ImgBrowz0r changelog
 http://61924.nl/projects/imgbrowz0r.html
 
+0.3.3 - June 29st, 2009:
+
+ - Fixed a bug in the url generation for directories.
+ - Directory names can now contain UTF-8 characters (tested with: 東京).
+   Umlaut and stress and accent marks do work now.
+ - Added character blacklist for directory names: < > " ' & ;
+
 0.3.2 - June 14th, 2009:
 
  - Breadcrumbs do not obey ['main_url']. Fixed by burnthewitches.

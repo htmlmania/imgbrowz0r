@@ -3,7 +3,7 @@
 /* ---
 
 	ImgBrowz0r, a simple PHP5 Gallery class
-	Version 0.3.2, June 14th, 2009
+	Version 0.3.3, June 29st, 2009
 	http://61924.nl/projects/imgbrowz0r.html
 
 	Copyright (c) 2008-2009 Frank Smit
@@ -30,7 +30,7 @@
 
 --- */
 
-define('IMGBROWZ0R_VERSION', '0.3.2');
+define('IMGBROWZ0R_VERSION', '0.3.3');
 
 class imgbrowz0r
 {
@@ -105,12 +105,12 @@ class imgbrowz0r
 
 		if ($raw_path !== false)
 		{
-			$this->cur_directory = preg_replace('/[^A-Za-z0-9,_ -()\[\]\{\}\/]/', '', substr($raw_path, 0, strrpos($raw_path, '/'))).'/';
+			$this->cur_directory = str_replace(array('<', '>', '"', '\'', '&',' ;'), '', substr($raw_path, 0, strrpos($raw_path, '/')).'/');
 			$this->cur_page = (int) substr($raw_path, strrpos($raw_path, '/')+1);
 		}
 		else
 		{
-			$this->cur_directory = false; // This should stay a string
+			$this->cur_directory = false;
 			$this->cur_page = 1;
 		}
 
@@ -136,7 +136,7 @@ class imgbrowz0r
 				else
 				{
 					// Check if file is an supported image type
-					$image_extension = $this->get_ext($file);
+					$image_extension = imgbrowz0r::get_ext($file);
 					if (!in_array($image_extension, $this->image_types))
 						continue;
 
@@ -201,9 +201,10 @@ class imgbrowz0r
 				if (!file_exists($this->config['cache_dir'].'/'.$image_thumbnail))
 					$this->make_thumb($this->cur_directory, $file[1], $image_thumbnail);
 
-				echo "\t\t", '<div class="img-thumbnail img-column-', $row_count, '"><a href="', $this->config['images_url'], '/', $this->cur_directory,
-				     $file[1], '" title="', $file[1], '"><img src="', $this->config['cache_url'], '/', $image_thumbnail,
-				     '" alt="', $image_thumbnail, '" /></a><span>', $this->format_time($file[3]), '</span></div>', "\n";
+				echo "\t\t", '<div class="img-thumbnail img-column-', $row_count, '"><a href="', $this->config['images_url'],
+				     '/', $this->cur_directory, $file[1], '" title="', $file[1], '"><img src="', $this->config['cache_url'],
+				     '/', $image_thumbnail, '" alt="', $image_thumbnail, '" /></a><span>', $this->format_time($file[3]),
+				     '</span></div>', "\n";
 			}
 			else
 			{
@@ -216,14 +217,14 @@ class imgbrowz0r
 							 mt_rand(0, count($dir_thumbs)-1))]).'\')"' : null;
 
 					echo "\t\t", '<div class="img-directory img-column-', $row_count, '"><a href="',
-					     str_replace('%PATH%',  $this->cur_directory.$file[1], $this->config['main_url']), '/1"',
+					     str_replace('%PATH%',  $this->cur_directory.$file[1].'/1', $this->config['main_url']), '"',
 					     $dir_thumbnail, ' title="', $file[1], '">&nbsp;</a><span class="img-dir-name">', $file[1],
 					     '</span><span class="img-thumb-date">', $this->format_time($file[3]), '</span></div>', "\n";
 				}
 				else
 					echo "\t\t", '<div class="img-directory img-column-', $row_count, '"><a href="',
-					     str_replace('%PATH%',  $this->cur_directory.$file[1], $this->config['main_url']), '/1" title="',
-					     $file[1], '"><span>', $file[1],'</span></a><span>', $this->format_time($file[3]),
+					     str_replace('%PATH%',  $this->cur_directory.$file[1].'/1', $this->config['main_url']),
+					     '" title="', $file[1], '"><span>', $file[1], '</span></a><span>', $this->format_time($file[3]),
 					     '</span></div>', "\n";
 			}
 
@@ -281,17 +282,17 @@ class imgbrowz0r
 		$current_range = array(($this->cur_page < 5 ? 2 : $this->cur_page-3), ($this->cur_page+3 >= $this->page_count ? $this->page_count-1 : $this->cur_page+3));
 
 		// Previous and next links
-		$prev = $this->cur_page > 1 ? '<a href="'.str_replace('%PATH%',  $cur_dir.'/'.($this->cur_page - 1), $this->config['main_url']).'">&laquo;</a>' : null;
-		$next = $this->cur_page < $this->page_count ? '<a href="'.str_replace('%PATH%',  $cur_dir.'/'.($this->cur_page + 1), $this->config['main_url']).'">&raquo;</a>' : null;
+		$prev = $this->cur_page > 1 ? '<a href="'.str_replace('%PATH%', $cur_dir.'/'.($this->cur_page - 1), $this->config['main_url']).'">&laquo;</a>' : null;
+		$next = $this->cur_page < $this->page_count ? '<a href="'.str_replace('%PATH%', $cur_dir.'/'.($this->cur_page + 1), $this->config['main_url']).'">&raquo;</a>' : null;
 
 		// First and last page
-		$first = $this->cur_page === 1 ? '<strong class="img-current-page">1</strong>' : '<a href="'.str_replace('%PATH%',  $cur_dir.'/1', $this->config['main_url']).'">1</a>';
+		$first = $this->cur_page === 1 ? '<strong class="img-current-page">1</strong>' : '<a href="'.str_replace('%PATH%', $cur_dir.'/1', $this->config['main_url']).'">1</a>';
 		$last = $this->cur_page === $this->page_count ? '<strong class="img-current-page">'.$this->page_count.'</strong>' : '<a href="'.
-		        str_replace('%PATH%',  $cur_dir.'/'.$this->page_count, $this->config['main_url']).'">'.$this->page_count.'</a>';
+		        str_replace('%PATH%', $cur_dir.'/'.$this->page_count, $this->config['main_url']).'">'.$this->page_count.'</a>';
 
 		// Other pages
 		for ($x=$current_range[0];$x <= $current_range[1];++$x)
-			$pages[] = '<a href="'.str_replace('%PATH%',  $cur_dir.'/'.$x, $this->config['main_url']).'">'.($x == $this->cur_page ? '<strong>'.$x.'</strong>' : $x).'</a>';
+			$pages[] = '<a href="'.str_replace('%PATH%', $cur_dir.'/'.$x, $this->config['main_url']).'">'.($x == $this->cur_page ? '<strong>'.$x.'</strong>' : $x).'</a>';
 
 		return '<div class="img-pagination"><span>Pages: </span>'.$prev.' '.$first.($this->cur_page > 5 ? ' ... ' : ' ').implode(' ', $pages).
 		       ($this->cur_page < $this->page_count - 4 ? ' ... ' : ' ').$last.' '.$next.'</div>';
@@ -316,7 +317,7 @@ class imgbrowz0r
 			exit('Cache directory does not exist or is not writable!');
 
 		$image_dir = $image_dir !== false ? $image_dir.'/' : null;
-		$image_info = $this->get_image_info($this->config['images_dir'].'/'.$image_dir.'/'.$image_name);
+		$image_info = imgbrowz0r::get_image_info($this->config['images_dir'].'/'.$image_dir.'/'.$image_name);
 
 		// Check if file is an supported image type
 		if (!in_array($image_info['extension'], $this->image_types))
@@ -395,7 +396,7 @@ class imgbrowz0r
 
 			while (($file = readdir($handle)) !== false)
 			{
-				$thumb_extension = $this->get_ext($file);
+				$thumb_extension = imgbrowz0r::get_ext($file);
 				if (!in_array($thumb_extension, $this->image_types))
 					continue;
 
@@ -420,14 +421,14 @@ class imgbrowz0r
 	}
 
 	// Get info from image (width, height, type, extension)
-	private function get_image_info($filepath)
+	static private function get_image_info($filepath)
 	{
 		$getimagesize = getimagesize($filepath);
-		return array('width' => $getimagesize[0], 'height' => $getimagesize[1], 'type' => $getimagesize[2], 'extension' => $this->get_ext($filepath));
+		return array('width' => $getimagesize[0], 'height' => $getimagesize[1], 'type' => $getimagesize[2], 'extension' => imgbrowz0r::get_ext($filepath));
 	}
 
 	// Get extension from filename (returns the extension without the dot)
-	private function get_ext($file_name)
+	static private function get_ext($file_name)
 	{
 		return strtolower(pathinfo($file_name, PATHINFO_EXTENSION));
 	}

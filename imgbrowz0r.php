@@ -34,9 +34,9 @@ define('IMGBROWZ0R_VERSION', '0.3.4');
 
 class imgbrowz0r
 {
-	private $config, $cur_directory, $cur_page, $files, $page_count,
-	        $count_files=0, $count_dirs=0, $count_imgs=0, $full_path,
-		$image_types=array('gif', 'jpg', 'jpeg', 'jpe', 'jif', 'jfif', 'jfi', 'png'); // All image types that browsers support
+	protected $config, $cur_directory, $cur_page, $files, $page_count,
+	          $count_files=0, $count_dirs=0, $count_imgs=0, $full_path,
+		  $image_types=array('gif', 'jpg', 'jpeg', 'jpe', 'jif', 'jfif', 'jfi', 'png'); // All image types that browsers support
 
 	public $status=200;
 
@@ -310,7 +310,7 @@ class imgbrowz0r
 	}
 
 	// The legendary thumbnail generater
-	private function make_thumb($image_dir, $image_name, $image_thumbnail)
+	protected function make_thumb($image_dir, $image_name, $image_thumbnail)
 	{
 		//Check if thumb dir exists
 		if (!is_dir($this->config['cache_dir']) || !is_writable($this->config['cache_dir']))
@@ -387,7 +387,7 @@ class imgbrowz0r
 		imagedestroy($thumbnail);
 	}
 
-	private function read_cache($path)
+	protected function read_cache($path)
 	{
 		if (is_dir($path) && ($handle = opendir($path)))
 		{
@@ -415,20 +415,20 @@ class imgbrowz0r
 	}
 
 	// Format unix timestamp to a human readable date
-	private function format_time($timestamp)
+	protected function format_time($timestamp)
 	{
 		return gmdate($this->config['time_format'], ($timestamp + $this->config['time_zone'] * 3600));
 	}
 
 	// Get info from image (width, height, type, extension)
-	static private function get_image_info($filepath)
+	protected static function get_image_info($filepath)
 	{
 		$getimagesize = getimagesize($filepath);
 		return array('width' => $getimagesize[0], 'height' => $getimagesize[1], 'type' => $getimagesize[2], 'extension' => imgbrowz0r::get_ext($filepath));
 	}
 
 	// Get extension from filename (returns the extension without the dot)
-	static private function get_ext($file_name)
+	protected static function get_ext($file_name)
 	{
 		return strtolower(pathinfo($file_name, PATHINFO_EXTENSION));
 	}

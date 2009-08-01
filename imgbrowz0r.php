@@ -3,7 +3,7 @@
 /* ---
 
 	ImgBrowz0r, a simple PHP5 Gallery class
-	Version 0.3.3, June 29st, 2009
+	Version 0.3.4, August Xst, 2009
 	http://61924.nl/projects/imgbrowz0r.html
 
 	Copyright (c) 2008-2009 Frank Smit
@@ -30,7 +30,7 @@
 
 --- */
 
-define('IMGBROWZ0R_VERSION', '0.3.3');
+define('IMGBROWZ0R_VERSION', '0.3.4');
 
 class imgbrowz0r
 {
@@ -59,8 +59,11 @@ class imgbrowz0r
 			'cache_url'                => isset($config['cache_url']) ? $config['cache_url'] : exit('You have to set the url to the cache!'),
 
 			// Sorting settings
-			'sort_by'                  => isset($config['sort_by']) && in_array($config['sort_by'], array(1, 2, 3)) ? $config['sort_by'] : 3,
-			'sort_order'               => isset($config['sort_order']) && $config['sort_order'] === true ? SORT_ASC : SORT_DESC,
+			'dir_sort_by'              => isset($config['dir_sort_by']) && in_array($config['dir_sort_by'], array(1, 2, 3)) ? $config['dir_sort_by'] : 3,
+			'dir_sort_order'           => isset($config['dir_sort_order']) && $config['dir_sort_order'] === true ? SORT_ASC : SORT_DESC,
+
+			'img_sort_by'              => isset($config['img_sort_by']) && in_array($config['img_sort_by'], array(1, 2, 3)) ? $config['img_sort_by'] : 3,
+			'img_sort_order'           => isset($config['img_sort_order']) && $config['img_sort_order'] === true ? SORT_ASC : SORT_DESC,
 
 			// Thumbnail settings
 			'thumbs_per_page'          => isset($config['thumbs_per_page']) ? $config['thumbs_per_page'] : 12,
@@ -95,10 +98,7 @@ class imgbrowz0r
 		$current_url = urldecode($protocol.$_SERVER['HTTP_HOST'].$port.$_SERVER['REQUEST_URI']);
 
 		// Regex
-		preg_match('/^'.str_replace(
-		           array('{', '}', '[', ']', '?', '(', ')', '-', '.', '/', '=', '%PATH%'),
-		           array('\{', '\}', '\[', '\]', '\?', '\(', '\)', '\-', '\.', '\/', '\=', '(.*?)'),
-		           $this->config['main_url']).'$/i', $current_url, $matches);
+		preg_match('/^'.str_replace('%PATH%', '(.*?)', preg_quote($this->config['main_url'], '/')).'$/i', $current_url, $matches);
 
 		// Set current path/directory and page
 		$raw_path = isset($matches[1]) ? trim($matches[1], " /\n\t") : false;
@@ -149,14 +149,14 @@ class imgbrowz0r
 			// Sort arrays
 			if (($this->count_dirs = count($dirs)) > 0)
 			{
-				foreach($dirs as $res) $sortAux[] = $res[$this->config['sort_by']];
-				array_multisort($sortAux, $this->config['sort_order'], $dirs);
+				foreach($dirs as $res) $sortAux[] = $res[$this->config['dir_sort_by']];
+				array_multisort($sortAux, $this->config['dir_sort_order'], $dirs);
 			}
 
 			if (($this->count_imgs = count($imgs)) > 0)
 			{
-				foreach($imgs as $res2) $sortAux2[] = $res2[$this->config['sort_by']];
-				array_multisort($sortAux2, $this->config['sort_order'], $imgs);
+				foreach($imgs as $res2) $sortAux2[] = $res2[$this->config['dir_sort_by']];
+				array_multisort($sortAux2, $this->config['dir_sort_order'], $imgs);
 			}
 
 			// Calculate pages

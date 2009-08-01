@@ -41,8 +41,11 @@ $config = array(
 	'cache_url'                => 'http://example.com/imgbrowz0r/cache',
 
 	// Sorting settings (optional)
-	'sort_by'                  => 3, // 1 = filename, 2 = extension (png, gif, etc.), 3 = inode change time of file
-	'sort_order'               => false, // true = ascending, false = descending
+	'dir_sort_by'              => 3, // 1 = filename, 2 = extension (dir), 3 = inode change time of file
+	'dir_sort_order'           => false, // true = ascending, false = descending
+
+	'img_sort_by'              => 3, // 1 = filename, 2 = extension (png, gif, etc.), 3 = inode change time of file
+	'img_sort_order'           => false, // true = ascending, false = descending
 
 	// Thumbnail settings (optional)
 	'thumbs_per_page'          => 12, // Amount of thumbnails per page
@@ -72,7 +75,7 @@ $gallery = new imgbrowz0r($config);
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 
-	<title>ImgBrowz0r 0.3.3</title>
+	<title>ImgBrowz0r 0.3.4</title>
 
 	<style type="text/css">
 		body { padding: 0;margin:0;text-align: center;font-size:90%;line-height: 1.5;background-color: #fff;font-family: Tahoma, Verdana, sans-serif }

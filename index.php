@@ -62,7 +62,8 @@ $config = array(
 	'ignore_port'              => false, // Ignore port in url. Set this to true to ignore the port.
 	'dir_thumbs'               => false, // Show a thumbnail in a category box. Default is false.
 	'random_thumbs'            => false, // Use random thumbnails for categories. Default is false.
-	'read_thumb_limit'         => 0 // See README for information about this setting.
+	'read_thumb_limit'         => 0, // See README for information about this setting.
+	'filesize_limit'           => 4069 // Filesize limit in bytes (4MB). Exclude images that are bigger than the filesize limit.
 	);
 
 // Start the class
@@ -130,28 +131,33 @@ $gallery = new imgbrowz0r($config);
 
 <?php
 
-// Prepare everything. This function must be called before you call other functions.
+// Prepare everything. This function must be called before
+// you call other functions. (required)
 $gallery->init();
 
-// Generate navigation and statistics
+// Generate navigation and statistics. (optional, but remommended)
+// The output of the functions are now assigned to variabled, but
+// you can also call the functions directly.
 $gallery_breadcrumbs = $gallery->breadcrumbs();
 $gallery_pagination = $gallery->pagination();
 $gallery_statistics = $gallery->statistics();
 
-// Display description of the current directory (optional).
+// Display description of the current directory. (optional)
 echo $gallery->description();
 
 // Display navigation
 echo '<div class="imgbrowz0r-navigation">', "\n\t", $gallery_breadcrumbs, "\n\t", $gallery_pagination, "\n\t", $gallery_statistics, "\n", '</div>', "\n\n";
 
-// Display images and directories
+// Display images and directories. (required)
 echo $gallery->browse();
 
 // Display navigation
 echo '<div class="imgbrowz0r-navigation">', "\n\t", $gallery_pagination, "\n\t", $gallery_breadcrumbs, "\n", '</div>', "\n\n";
 
-// Showing some stats
-echo '<p>Processing time: ', round(get_microtime(microtime()) - get_microtime($start_timer), 5), ' &amp;&amp; Memory usage: ', file_size(memory_get_usage()), '</p>';
+// Showing some stats (optional)
+echo '<p>Processing time: ', round(get_microtime(microtime()) - get_microtime($start_timer), 5),
+	' &amp;&amp; Memory usage: ', file_size(memory_get_usage()),
+	' &amp;&amp; Memory peak: ', file_size(memory_get_peak_usage()), '</p>';
 
 ?>
 

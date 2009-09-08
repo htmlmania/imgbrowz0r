@@ -3,7 +3,7 @@
 /* ---
 
 	ImgBrowz0r, a simple PHP5 Gallery class
-	Version 0.3.4, August Xst, 2009
+	Version 0.3.4, September 8th, 2009
 	http://61924.nl/projects/imgbrowz0r.html
 
 	Copyright (c) 2008-2009 Frank Smit
@@ -36,7 +36,7 @@ class imgbrowz0r
 {
 	protected $config, $cur_directory, $cur_page, $files, $page_count,
 	          $count_files=0, $count_dirs=0, $count_imgs=0, $full_path,
-		  $image_types=array('gif', 'jpg', 'jpeg', 'jpe', 'jif', 'jfif', 'jfi', 'png'); // All image types that browsers support
+	          $image_types=array('gif', 'jpg', 'jpeg', 'jpe', 'jif', 'jfif', 'jfi', 'png'); // All image types that browsers support
 
 	public $status=200;
 
@@ -81,7 +81,8 @@ class imgbrowz0r
 			'dir_thumbs'               => isset($config['dir_thumbs']) && $config['dir_thumbs'] === true  ? true : false,
 			'random_thumbs'            => isset($config['random_thumbs']) && $config['random_thumbs'] === true  ? true : false,
 			'read_thumb_limit'         => isset($config['read_thumb_limit']) && is_numeric($config['read_thumb_limit'])
-			                              && $config['read_thumb_limit'] >= 0 ? $config['read_thumb_limit'] : 0
+			                              && $config['read_thumb_limit'] >= 0 ? $config['read_thumb_limit'] : 0,
+			'filesize_limit'           => isset($config['filesize_limit']) ? $config['filesize_limit'] : 20480,
 		);
 
 		if ($this->config['random_thumbs'] === false)
@@ -93,7 +94,7 @@ class imgbrowz0r
 		// Get current url
 		$protocol = !isset($_SERVER['HTTPS']) || strtolower($_SERVER['HTTPS']) == 'off' ? 'http://' : 'https://';
 		$port = $this->config['ignore_port'] === false && (isset($_SERVER['SERVER_PORT']) && (($_SERVER['SERVER_PORT'] != '80'
-		        && $protocol == 'http://') || ($_SERVER['SERVER_PORT'] != '443' && $protocol == 'https://'))
+			&& $protocol == 'http://') || ($_SERVER['SERVER_PORT'] != '443' && $protocol == 'https://'))
 			&& strpos($_SERVER['HTTP_HOST'], ':') === false) ? ':'.$_SERVER['SERVER_PORT'] : '';
 		$current_url = urldecode($protocol.$_SERVER['HTTP_HOST'].$port.$_SERVER['REQUEST_URI']);
 
@@ -133,7 +134,7 @@ class imgbrowz0r
 
 					$dirs[] = array(0, $file, 'dir', filectime($this->full_path.'/'.$file));
 				}
-				else
+				else if (filesize($this->full_path.'/'.$file) <= $this->config['filesize_limit'])
 				{
 					// Check if file is an supported image type
 					$image_extension = imgbrowz0r::get_ext($file);
@@ -164,7 +165,11 @@ class imgbrowz0r
 			$this->cur_page = $this->cur_page > 0 && $this->cur_page <= $this->page_count ? $this->cur_page : 1;
 
 			// Merge and slice arrays
-			$this->files = array_slice(array_merge($dirs, $imgs), ($this->cur_page-1) * $this->config['thumbs_per_page'], $this->config['thumbs_per_page']);
+			$this->files = array_slice(
+				array_merge($dirs, $imgs),
+				($this->cur_page-1) * $this->config['thumbs_per_page'],
+				$this->config['thumbs_per_page']);
+
 			$this->count_files = count($this->files);
 		}
 		else
@@ -174,11 +179,10 @@ class imgbrowz0r
 	// Reads the gallery directories and files
 	public function browse()
 	{
-		// Check status code
+		// Check status code and file count
 		if ($this->status === 404)
 			return '<div id="imgbrowz0r">'."\n\t".'<p class="img-directory-not-found">This directory does not exist!</p>'."\n".'</div>'."\n";
-
-		if ($this->count_files < 1)
+		else if ($this->count_files < 1)
 			return '<div id="imgbrowz0r">'."\n\t".'<p class="img-empty-directory">There are no images or directories in this directory.</p>'."\n".'</div>'."\n";
 
 		@set_time_limit(180); // 3 Minutes
@@ -212,9 +216,9 @@ class imgbrowz0r
 				{
 					$dir_hash = md5($this->cur_directory.$file[1].'/');
 					$dir_thumbs = $this->read_cache($this->config['cache_dir'].'/'.$dir_hash);
+
 					$dir_thumbnail = isset($dir_thumbs[0]) ? ' style="background-image: url(\''.$this->config['cache_url'].'/'.
-					                 $dir_hash.'/'.basename($dir_thumbs[($this->config['random_thumbs'] === false ? 0 :
-							 mt_rand(0, count($dir_thumbs)-1))]).'\')"' : null;
+					                 $dir_hash.'/'.$dir_thumbs[($this->config['random_thumbs'] === false ? 0 : mt_rand(0, count($dir_thumbs)-1))].'\')"' : null;
 
 					echo "\t\t", '<div class="img-directory img-column-', $row_count, '"><a href="',
 					     str_replace('%PATH%',  $this->cur_directory.$file[1].'/1', $this->config['main_url']), '"',
@@ -222,10 +226,12 @@ class imgbrowz0r
 					     '</span><span class="img-thumb-date">', $this->format_time($file[3]), '</span></div>', "\n";
 				}
 				else
+				{
 					echo "\t\t", '<div class="img-directory img-column-', $row_count, '"><a href="',
 					     str_replace('%PATH%',  $this->cur_directory.$file[1].'/1', $this->config['main_url']),
 					     '" title="', $file[1], '"><span>', $file[1], '</span></a><span>', $this->format_time($file[3]),
 					     '</span></div>', "\n";
+				}
 			}
 
 			if ($row_count === $this->config['max_thumb_row'] && $k < ($this->count_files-1))
@@ -312,10 +318,6 @@ class imgbrowz0r
 	// The legendary thumbnail generater
 	protected function make_thumb($image_dir, $image_name, $image_thumbnail)
 	{
-		//Check if thumb dir exists
-		if (!is_dir($this->config['cache_dir']) || !is_writable($this->config['cache_dir']))
-			exit('Cache directory does not exist or is not writable!');
-
 		$image_dir = $image_dir !== false ? $image_dir.'/' : null;
 		$image_info = imgbrowz0r::get_image_info($this->config['images_dir'].'/'.$image_dir.'/'.$image_name);
 
@@ -324,11 +326,11 @@ class imgbrowz0r
 			return false;
 
 		// Open the image so we can make a thumbnail
-		if ($image_info['type'] == 3)
+		if ($image_info['type'] === 3)
 			$image = imagecreatefrompng($this->config['images_dir'].'/'.$image_dir.$image_name);
-		else if ($image_info['type'] == 2)
+		else if ($image_info['type'] === 2)
 			$image = imagecreatefromjpeg($this->config['images_dir'].'/'.$image_dir.$image_name);
-		else if ($image_info['type'] == 1)
+		else if ($image_info['type'] === 1)
 			$image = imagecreatefromgif($this->config['images_dir'].'/'.$image_dir.$image_name);
 		else
 			return false;
@@ -372,11 +374,11 @@ class imgbrowz0r
 		imagecopyresampled($thumbnail, $image, 0, 0, 0, 0, $thumb_width, $thumb_height, $image_info['width'], $image_info['height']);
 
 		// Save the thumbnail, but first check what kind of file it is
-		if ($image_info['type'] == 3)
+		if ($image_info['type'] === 3)
 			imagepng($thumbnail, $this->config['cache_dir'].'/'.$image_thumbnail);
-		else if ($image_info['type'] == 2)
+		else if ($image_info['type'] === 2)
 			imagejpeg($thumbnail, $this->config['cache_dir'].'/'.$image_thumbnail, 85);
-		else if ($image_info['type'] == 1)
+		else if ($image_info['type'] === 1)
 		{
 			imagetruecolortopalette($thumbnail, true, 256);
 			imagegif($thumbnail, $this->config['cache_dir'].'/'.$image_thumbnail);
@@ -387,6 +389,7 @@ class imgbrowz0r
 		imagedestroy($thumbnail);
 	}
 
+	// TODO: Recursive directory read
 	protected function read_cache($path)
 	{
 		if (is_dir($path) && ($handle = opendir($path)))
@@ -424,7 +427,12 @@ class imgbrowz0r
 	protected static function get_image_info($filepath)
 	{
 		$getimagesize = getimagesize($filepath);
-		return array('width' => $getimagesize[0], 'height' => $getimagesize[1], 'type' => $getimagesize[2], 'extension' => imgbrowz0r::get_ext($filepath));
+
+		return array(
+			'width' => $getimagesize[0],
+			'height' => $getimagesize[1],
+			'type' => $getimagesize[2],
+			'extension' => imgbrowz0r::get_ext($filepath));
 	}
 
 	// Get extension from filename (returns the extension without the dot)

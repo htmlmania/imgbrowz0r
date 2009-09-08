@@ -6,6 +6,7 @@ http://61924.nl/projects/imgbrowz0r.html
  - Replaced str_replace() with preg_quote() for regex escaping.
  - Added separate sorting options for images and directories.
  - Made private methods/variables protected to make extending easier.
+ - Added filesize limit option.
 
 0.3.3 - June 29st, 2009:
 

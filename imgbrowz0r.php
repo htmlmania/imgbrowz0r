@@ -205,9 +205,14 @@ class imgbrowz0r
 				if (!file_exists($this->config['cache_dir'].'/'.$image_thumbnail))
 					$this->make_thumb($this->cur_directory, $file[1], $image_thumbnail);
 
-				echo "\t\t", '<div class="img-thumbnail img-column-', $row_count, '"><a href="', $this->config['images_url'],
+				/* echo "\t\t", '<div class="img-thumbnail img-column-', $row_count, '"><a href="', $this->config['images_url'],
 				     '/', $this->cur_directory, $file[1], '" title="', $file[1], '"><img src="', $this->config['cache_url'],
 				     '/', $image_thumbnail, '" alt="', $image_thumbnail, '" /></a><span>', $this->format_time($file[3]),
+				     '</span></div>', "\n"; */
+
+				echo "\t\t", '<div class="img-thumbnail img-column-', $row_count, '"><a href="', $this->config['images_url'],
+				     '/', $this->cur_directory, $file[1], '" style="background-image: url(\'', $this->config['cache_url'], '/', $image_thumbnail, '\')" title="', $file[1],
+					 '">&nbsp;</a><span>', $this->format_time($file[3]),
 				     '</span></div>', "\n";
 			}
 			else
@@ -339,7 +344,6 @@ class imgbrowz0r
 		// Calculate new width and height
 		$zoomw = $image_info['width'] / $this->config['max_thumb_width'];
 		$zoomh = $image_info['height'] / $this->config['max_thumb_height'];
-
 		$zoom = ($zoomw > $zoomh) ? $zoomw : $zoomh;
 
 		if ($image_info['width'] < $this->config['max_thumb_width'] && $image_info['height'] < $this->config['max_thumb_height'])

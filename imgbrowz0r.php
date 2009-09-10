@@ -3,7 +3,7 @@
 /* ---
 
 	ImgBrowz0r, a simple PHP5 Gallery class
-	Version 0.3.4, September 8th, 2009
+	Version 0.3.4, September 10th, 2009
 	http://61924.nl/projects/imgbrowz0r.html
 
 	Copyright (c) 2008-2009 Frank Smit
@@ -134,7 +134,7 @@ class imgbrowz0r
 
 					$dirs[] = array(0, $file, 'dir', filectime($this->full_path.'/'.$file));
 				}
-				else if (filesize($this->full_path.'/'.$file) <= $this->config['filesize_limit'])
+				else if (filesize($this->full_path.'/'.$file) <= $this->config['filesize_limit']*1024)
 				{
 					// Check if file is an supported image type
 					$image_extension = imgbrowz0r::get_ext($file);
@@ -215,7 +215,7 @@ class imgbrowz0r
 				if ($this->config['dir_thumbs'] === true)
 				{
 					$dir_hash = md5($this->cur_directory.$file[1].'/');
-					$dir_thumbs = $this->read_cache($this->config['cache_dir'].'/'.$dir_hash);
+					$dir_thumbs = $this->read_cache($dir_hash, $this->cur_directory.$file[1].'/');
 
 					$dir_thumbnail = isset($dir_thumbs[0]) ? ' style="background-image: url(\''.$this->config['cache_url'].'/'.
 					                 $dir_hash.'/'.$dir_thumbs[($this->config['random_thumbs'] === false ? 0 : mt_rand(0, count($dir_thumbs)-1))].'\')"' : null;
@@ -249,6 +249,7 @@ class imgbrowz0r
 		return ob_get_clean();
 	}
 
+	// Returns the image/directory count
 	public function statistics()
 	{
 		// Check status code
@@ -389,18 +390,20 @@ class imgbrowz0r
 		imagedestroy($thumbnail);
 	}
 
-	// TODO: Recursive directory read
-	protected function read_cache($path)
+	// Reads the cache folder for thumbnails. If none is found it makes one thumbnail
+	protected function read_cache($cache_path, $category_path)
 	{
-		if (is_dir($path) && ($handle = opendir($path)))
+		$thumbnails = array();
+
+		// Look for thumbnails in the cache dir
+		if (is_dir($this->config['cache_dir'].'/'.$cache_path) && ($handle = opendir($this->config['cache_dir'].'/'.$cache_path)))
 		{
-			$thumbnails = array();
 			$file_count = 0;
 
 			while (($file = readdir($handle)) !== false)
 			{
-				$thumb_extension = imgbrowz0r::get_ext($file);
-				if (!in_array($thumb_extension, $this->image_types))
+				$extension = imgbrowz0r::get_ext($file);
+				if (!in_array($extension, $this->image_types))
 					continue;
 
 				$thumbnails[] = $file;
@@ -411,10 +414,36 @@ class imgbrowz0r
 			}
 
 			closedir($handle);
-			return $thumbnails;
 		}
 		else
-			return false;
+			mkdir($this->config['cache_dir'].'/'.$cache_path, 0777);
+
+		// Generate a thumbnail if none is found
+		if (count($thumbnails) < 1)
+		{
+			$file_count = 0;
+			$handle = opendir($this->config['images_dir'].'/'.$category_path);
+
+			while (($file = readdir($handle)) !== false)
+			{
+				$extension = imgbrowz0r::get_ext($file);
+				if (!in_array($extension, $this->image_types))
+					continue;
+
+				$image_thumbnail = $cache_path.'/'.filectime($this->config['images_dir'].'/'.$category_path.'/'.$file).'_'.$file; // The name of the thumbnail;
+				$thumbnails[] = basename($image_thumbnail);
+				$this->make_thumb($category_path, $file, $image_thumbnail);
+
+				++$file_count;
+
+				if ($file_count === 1)
+					break;
+			}
+
+			closedir($handle);
+		}
+
+		return $thumbnails;
 	}
 
 	// Format unix timestamp to a human readable date

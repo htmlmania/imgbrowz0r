@@ -63,7 +63,7 @@ $config = array(
 	'dir_thumbs'               => false, // Show a thumbnail in a category box. Default is false.
 	'random_thumbs'            => false, // Use random thumbnails for categories. Default is false.
 	'read_thumb_limit'         => 0, // See README for information about this setting.
-	'filesize_limit'           => 4069 // Filesize limit in bytes (4MB). Exclude images that are bigger than the filesize limit.
+	'filesize_limit'           => 4069 // Filesize limit in kilobytes (4MB). Exclude images that are bigger than the filesize limit.
 	);
 
 // Start the class

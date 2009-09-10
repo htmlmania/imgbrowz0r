@@ -1,7 +1,7 @@
 ImgBrowz0r changelog
 http://61924.nl/projects/imgbrowz0r.html
 
-0.3.4 - August 10th, 2009:
+0.3.4 - September 10th, 2009:
 
  - Replaced str_replace() with preg_quote() for regex escaping.
  - Added separate sorting options for images and directories.

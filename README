@@ -1,6 +1,5 @@
-README
-
-# Introduction
+ImgBrowz0r
+==========
 
 ImgBrowz0r is a class written in PHP5 (tested with 5.2.9) that enables you to set up
 a simple gallery with basic configuration in 10 minutes. It's also possible to integrate
@@ -14,7 +13,8 @@ with Javascript and CSS.
 The only thing you have to do is install it and upload your images. And maybe clean
 the cache once in a while.
 
-# Features
+Features
+========
 
  - Infinite nesting of directories.
  - Automatic thumbnail creation and caching.
@@ -32,7 +32,8 @@ the cache once in a while.
  - Support for gif, jpg, jpeg, jpe, jif, jfif, jfi and png images.
  - Page navigation and breadcrumbs.
 
-# Get it running
+Installation
+============
 
  - Drop the files from this package into a web accessible directory.
  - Make two directories named "images" and "cache" in the ImgBrowz0r directory.
@@ -42,51 +43,54 @@ the cache once in a while.
 That's a really basic setup. It's recommended to play with the condiguration
 and try various things (url rewriting, CMS integration, etc.).
 
-# Get help/info
+Contact/Support
+===============
 
-The project page: http://61924.nl/projects/imgbrowz0r.html
-The forum: http://forum.61924.nl/
-The demo: http://images.61924.nl/
+Project page: http://61924.nl/projects/imgbrowz0r.html
+Issues: http://github.com/FSX/imgbrowz0r/issues
+Demo: http://images.61924.nl/
 
-# Development
+Development
+===========
 
 You can take a look at the development progress here:
-http://bitbucket.org/fsx/imgbrowz0r/
+http://github.com/FSX/imgbrowz0r
 
 And bugs can be reported here:
-http://bitbucket.org/fsx/imgbrowz0r/issues/
+http://github.com/FSX/imgbrowz0r/issues
 
-# Extra information
+Extra information
+=================
 
 Information about certain things.
 
-  ## Character blacklist
+  - Character blacklist
 
-  Certain characters are not allowed in directory names.
+    Certain characters are not allowed in directory names.
 
-  < > " ' & ;
+    < > " ' & ;
 
-  ## read_thumb_limit
+  - read_thumb_limit
 
-  When the "random thumbnail" function is enabled it reads the cache of the current
-  category/directory to choose a random thumbnail. If there are a lot thumbnails in
-  the cache it will take more time to read all the files in the cache.
+    When the "random thumbnail" function is enabled it reads the cache of the current
+    category/directory to choose a random thumbnail. If there are a lot thumbnails in
+    the cache it will take more time to read all the files in the cache.
 
-  You can set this to 10 to speedup the process, but it will only choose a random
-  thumbnail of out 10.
+    You can set this to 10 to speedup the process, but it will only choose a random
+    thumbnail of out 10.
 
-  ## Description for directories
+  - Description for directories
 
-  With imgbrowz0r::description() you can search for a description in the currently
-  viewed directory. The function return the content of the description file when it
-  found it and "null" is returned when nothing is found.
+    With imgbrowz0r::description() you can search for a description in the currently
+    viewed directory. The function return the content of the description file when it
+    found it and "null" is returned when nothing is found.
 
-  You can add a description to a directory by adding a .desc file in the directory
-  and put your description in that file.
+    You can add a description to a directory by adding a .desc file in the directory
+    and put your description in that file.
 
-  Html tags are stripped from the description except the following tags:
-  <p>, <strong>, <em>, <a>, <br />, <h1>, <h2> and <h3>
+    Html tags are stripped from the description except the following tags:
+    <p>, <strong>, <em>, <a>, <br />, <h1>, <h2> and <h3>
 
-   - Use valid HTML in your description to avoid unexpected behaviour.
-   - Look for more info at:
-     http://php.net/manual/en/function.strip-tags.php
+     - Use valid HTML in your description to avoid unexpected behaviour.
+     - Look for more info at:
+       http://php.net/manual/en/function.strip-tags.php

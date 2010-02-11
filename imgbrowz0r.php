@@ -6,7 +6,7 @@
 	Version 0.3.5, February ??th, 2010
 	http://61924.nl/projects/imgbrowz0r.html
 
-	Copyright (c) 2008-2009 Frank Smit
+	Copyright (c) 2008-2010 Frank Smit
 	License: http://www.gzip.org/zlib/zlib_license.html
 
 	This software is provided 'as-is', without any express or implied
@@ -108,7 +108,7 @@ class imgbrowz0r
 
 		if ($raw_path)
 		{
-			$this->cur_directory = str_replace(array('<', '>', '"', '\'', '&',' ;'), '', substr($raw_path, 0, strrpos($raw_path, '/')).'/');
+			$this->cur_directory = str_replace(array('<', '>', '"', '\'', '&',' ;', '..', '%'), '', substr($raw_path, 0, strrpos($raw_path, '/')).'/');
 			$this->cur_page = (int) substr($raw_path, strrpos($raw_path, '/') + 1);
 		}
 		else

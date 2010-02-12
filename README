@@ -37,8 +37,8 @@ Installation
 
  - Drop the files from this package into a web accessible directory.
  - Make two directories named "images" and "cache" in the ImgBrowz0r directory.
- - Make "cache" writable (linux command: chmod -R 0777 cache).
- - Drop some images and directories in "images".
+ - Make "cache" directory writable (linux command: chmod -R 0777 cache).
+ - Drop some images and directories in "images" directory.
 
 That's a really basic setup. It's recommended to play with the condiguration
 and try various things (url rewriting, CMS integration, etc.).

@@ -1,7 +1,7 @@
 ImgBrowz0r changelog
 http://61924.nl/projects/imgbrowz0r.html
 
-0.3.5 - February ??th, 2010:
+0.3.5 - February 12th, 2010:
 
  - Renamed index.php to example.php.
  - Fixed directory traversal vulnerability. Fixed by bc.

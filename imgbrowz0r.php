@@ -3,7 +3,7 @@
 /* ---
 
 	ImgBrowz0r, a simple PHP5 Gallery class
-	Version 0.3.5, February ??th, 2010
+	Version 0.3.5, February 12th, 2010
 	http://61924.nl/projects/imgbrowz0r.html
 
 	Copyright (c) 2008-2010 Frank Smit
@@ -107,13 +107,13 @@ class imgbrowz0r
 		$current_url = urldecode($protocol.$_SERVER['HTTP_HOST'].$port.$_SERVER['REQUEST_URI']);
 
 		// Regex - extract the path and page number from the URL
-		preg_match('/^'.str_replace('%PATH%', '(.*?)', preg_quote($this->config['main_url'], '/')).'$/i', $current_url, $matches);
-		//preg_match('/^'.str_ireplace('%PATH%', '([A-Za-z0-9 \/\-_\.]+)', preg_quote($this->config['main_url'], '/')).'$/i', $current_url, $matches);
+		preg_match('/^'.str_ireplace('%PATH%', '(.*?)', preg_quote($this->config['main_url'], '/')).'$/i', $current_url, $matches);
+		//preg_match('/^'.str_ireplace('%PATH%', '([A-Za-z0-9 \/\-_\.]+)', preg_quote($this->config['main_url'], '/')).'$/i',
+		//	$current_url, $matches);
 
-		// Set current path/directory and page
+		// Set current path/directory and page number
 		$raw_path = isset($matches[1]) ? trim($matches[1], " \\/\n\t") : false;
 
-		// Set directory path and pagenumber
 		if ($raw_path)
 		{
 			$this->cur_directory = str_ireplace(array('<', '>', '"', '\'', '&',' ;', '..', '%'), '',
@@ -152,14 +152,14 @@ class imgbrowz0r
 			// Sort arrays
 			if (($this->count_dirs = count($dirs)) > 0)
 			{
-				foreach($dirs as $res) $sortAux[] = $res[$this->config['dir_sort_by']];
-				array_multisort($sortAux, $this->config['dir_sort_order'], $dirs);
+				foreach($dirs as $res) $sort_dirs[] = $res[$this->config['dir_sort_by']];
+				array_multisort($sort_dirs, $this->config['dir_sort_order'], $dirs);
 			}
 
 			if (($this->count_imgs = count($imgs)) > 0)
 			{
-				foreach($imgs as $res2) $sortAux2[] = $res2[$this->config['dir_sort_by']];
-				array_multisort($sortAux2, $this->config['dir_sort_order'], $imgs);
+				foreach($imgs as $res2) $sort_files[] = $res2[$this->config['dir_sort_by']];
+				array_multisort($sort_files, $this->config['dir_sort_order'], $imgs);
 			}
 
 			// Calculate pages
@@ -202,12 +202,15 @@ class imgbrowz0r
 				$image_cache_dir = md5($this->cur_directory);
 				$image_thumbnail = $image_cache_dir.'/'.$file[3].'_'.$file[1]; // The name of the thumbnail
 
+				// Create the directory where the thumbnail is stored if it doesn't exist
 				if (!is_dir($this->config['cache_dir'].'/'.$image_cache_dir))
 					mkdir($this->config['cache_dir'].'/'.$image_cache_dir, 0777);
 
+				// Generate thumbnail if there isn't one
 				if (!file_exists($this->config['cache_dir'].'/'.$image_thumbnail))
 					$this->make_thumb($this->cur_directory, $file[1], $image_thumbnail);
 
+				// Image thumbnail markup
 				echo "\t\t", '<div class="img-thumbnail img-column-', $row_count, '"><a href="', $this->config['images_url'],
 				     '/', $this->cur_directory, $file[1], '" style="background-image: url(\'', $this->config['cache_url'], '/',
 					 $image_thumbnail, '\')" title="', $file[1], '">&nbsp;</a><span>', $this->format_time($file[3]),
@@ -218,12 +221,16 @@ class imgbrowz0r
 				if ($this->config['dir_thumbs'])
 				{
 					$dir_hash = md5($this->cur_directory.$file[1].'/');
+
+					// Get a list of thumbnails
 					$dir_thumbs = $this->read_cache($dir_hash, $this->cur_directory.$file[1].'/');
 
+					// Choose a thumbnail to show
 					$dir_thumbnail = isset($dir_thumbs[0]) ? ' style="background-image: url(\''.$this->config['cache_url'].'/'.
 					                 $dir_hash.'/'.$dir_thumbs[(!$this->config['random_thumbs'] ? 0 :
 									 mt_rand(0, count($dir_thumbs)-1))].'\')"' : null;
 
+					// Directory thumbnail markup
 					echo "\t\t", '<div class="img-directory img-column-', $row_count, '"><a href="',
 					     str_ireplace('%PATH%',  $this->cur_directory.$file[1].'/1', $this->config['main_url']), '"',
 					     $dir_thumbnail, ' title="', $file[1], '">&nbsp;</a><span class="img-dir-name">', $file[1],
@@ -231,6 +238,7 @@ class imgbrowz0r
 				}
 				else
 				{
+					// Display a directory without a thumbnail
 					echo "\t\t", '<div class="img-directory img-column-', $row_count, '"><a href="',
 					     str_ireplace('%PATH%',  $this->cur_directory.$file[1].'/1', $this->config['main_url']),
 					     '" title="', $file[1], '"><span>', $file[1], '</span></a><span>', $this->format_time($file[3]),
@@ -273,6 +281,7 @@ class imgbrowz0r
 
 		$path_parts = $this->cur_directory ? explode('/', trim($this->cur_directory, '/')) : array();
 
+		// Generate breadcrumb links
 		if (isset($path_parts[0]))
 			foreach ($path_parts as $k => $part)
 				$output[] = '<a href="'.str_ireplace('%PATH%',  implode('/', array_slice($path_parts, 0, ($k+1))).'/1' ,
@@ -353,6 +362,7 @@ class imgbrowz0r
 
 		if ($image_info['width'] < $this->config['max_thumb_width'] && $image_info['height'] < $this->config['max_thumb_height'])
 		{
+			// Preserve the original dimensions of the image is smaller than the maximum height and width
 			$thumb_width = $image_info['width'];
 			$thumb_height = $image_info['height'];
 		}
@@ -365,13 +375,15 @@ class imgbrowz0r
 		// Create an image for the thumbnail
 		$thumbnail = imagecreatetruecolor($thumb_width, $thumb_height);
 
-		// Preserve transparency in PNG and GIF images
+		// Preserve transparency in PNG
 		if ($image_info['type'] === 3)
 		{
 			$alpha_color = imagecolorallocatealpha($thumbnail, 0, 0, 0, 127);
 			imagefill($thumbnail, 0, 0, $alpha_color);
 			imagesavealpha($thumbnail, true);
 		}
+
+		// Preserve transparency in GIF images
 		else if ($image_info['type'] === 1 && ($transparent_index = imagecolortransparent($image)) >= 0)
 		{
 			$transparent_color = imagecolorsforindex($image, $transparent_index);
@@ -388,14 +400,14 @@ class imgbrowz0r
 		if ($image_info['type'] === 3)
 			imagepng($thumbnail, $this->config['cache_dir'].'/'.$image_thumbnail);
 		else if ($image_info['type'] === 2)
-			imagejpeg($thumbnail, $this->config['cache_dir'].'/'.$image_thumbnail, 85);
+			imagejpeg($thumbnail, $this->config['cache_dir'].'/'.$image_thumbnail, 85); // 85 is the quality of the Jpeg thumbnail
 		else if ($image_info['type'] === 1)
 		{
 			imagetruecolortopalette($thumbnail, true, 256);
 			imagegif($thumbnail, $this->config['cache_dir'].'/'.$image_thumbnail);
 		}
 
-		// Destroy
+		// Destroy! (cleanup)
 		imagedestroy($image);
 		imagedestroy($thumbnail);
 	}
@@ -413,8 +425,7 @@ class imgbrowz0r
 
 			foreach ($files as $file)
 			{
-				$extension = $this->get_ext($file);
-				if (in_array($extension, $this->image_types))
+				if (in_array($this->get_ext($file), $this->image_types))
 				{
 					$thumbnails[] = $file;
 					++$file_count;
@@ -435,20 +446,21 @@ class imgbrowz0r
 
 			foreach ($files as $file)
 			{
-				$extension = $this->get_ext($file);
-				if (!in_array($extension, $this->image_types))
-					continue;
+				if (in_array($this->get_ext($file), $this->image_types))
+				{
+					// The name of the thumbnail
+					$image_thumbnail = $cache_path.'/'.filectime($this->config['images_dir'].'/'.$category_path.'/'.$file).'_'.$file;
 
-				// The name of the thumbnail
-				$image_thumbnail = $cache_path.'/'.filectime($this->config['images_dir'].'/'.$category_path.'/'.$file).'_'.$file;
+					$thumbnails[] = basename($image_thumbnail);
+					$this->make_thumb($category_path, $file, $image_thumbnail);
 
-				$thumbnails[] = basename($image_thumbnail);
-				$this->make_thumb($category_path, $file, $image_thumbnail);
+					++$file_count;
 
-				++$file_count;
-
-				if ($file_count === 1)
-					break;
+					// Change 1 to a higher number if you want to generate more thumbnails for a directory,
+					// but this also takes more time and memory.
+					if ($file_count === 1)
+						break;
+				}
 			}
 		}
 
@@ -477,7 +489,7 @@ class imgbrowz0r
 	// Get extension from filename (returns the extension without the dot)
 	protected function get_ext($filename)
 	{
-		//return strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+		// return strtolower(pathinfo($filename, PATHINFO_EXTENSION));
 		return strtolower(substr($filename, strrpos($filename, '.') + 1)); // This is a bit faster
 	}
 }

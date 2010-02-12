@@ -68,7 +68,7 @@ Information about certain things.
 
     Certain characters are not allowed in directory names.
 
-    < > " ' & ;
+    < > " ' & ; .. %
 
   - read_thumb_limit
 

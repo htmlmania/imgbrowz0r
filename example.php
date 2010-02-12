@@ -42,10 +42,13 @@ $config = array(
 
 	// Sorting settings (optional)
 	'dir_sort_by'              => 3, // 1 = filename, 2 = extension (dir), 3 = inode change time of file
-	'dir_sort_order'           => false, // true = ascending, false = descending
-
 	'img_sort_by'              => 3, // 1 = filename, 2 = extension (png, gif, etc.), 3 = inode change time of file
-	'img_sort_order'           => false, // true = ascending, false = descending
+
+	// The sort order settings can have the following values:
+	// SORT_ASC, SORT_DESC, SORT_REGULAR, SORT_NUMERIC, SORT_STRING
+	// SORT_ASC = ascending, SORT_DESC = descending
+	'dir_sort_order'           => SORT_DESC,
+	'img_sort_order'           => SORT_DESC,
 
 	// Thumbnail settings (optional)
 	'thumbs_per_page'          => 12, // Amount of thumbnails per page
@@ -62,8 +65,7 @@ $config = array(
 	'ignore_port'              => false, // Ignore port in url. Set this to true to ignore the port.
 	'dir_thumbs'               => false, // Show a thumbnail in a category box. Default is false.
 	'random_thumbs'            => false, // Use random thumbnails for categories. Default is false.
-	'read_thumb_limit'         => 0, // See README for information about this setting.
-	'filesize_limit'           => 4069 // Filesize limit in kilobytes (4MB). Exclude images that are bigger than the filesize limit.
+	'read_thumb_limit'         => 0 // See README for information about this setting.
 	);
 
 // Start the class

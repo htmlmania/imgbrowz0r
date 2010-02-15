@@ -36,7 +36,7 @@ $config = array(
 
 	// Url settings. These are required. Without trailing slash. (required)
 	// %PATH% is replaced with the directory location and page number
-	'main_url'                 => 'http://example.com/imgbrowz0r/index.php?q=%PATH%',
+	'main_url'                 => 'http://example.com/imgbrowz0r/example.php?q=%PATH%',
 	'images_url'               => 'http://example.com/imgbrowz0r/images',
 	'cache_url'                => 'http://example.com/imgbrowz0r/cache',
 

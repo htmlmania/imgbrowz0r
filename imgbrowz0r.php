@@ -107,7 +107,7 @@ class imgbrowz0r
 		$current_url = urldecode($protocol.$_SERVER['HTTP_HOST'].$port.$_SERVER['REQUEST_URI']);
 
 		// Regex - extract the path and page number from the URL
-		preg_match('/^'.str_ireplace('%PATH%', '(.*?)', preg_quote($this->config['main_url'], '/')).'$/i', $current_url, $matches);
+		preg_match('/^'.str_ireplace('%PATH%', '([^%]+)', preg_quote($this->config['main_url'], '/')).'$/i', $current_url, $matches);
 		//preg_match('/^'.str_ireplace('%PATH%', '([A-Za-z0-9 \/\-_\.]+)', preg_quote($this->config['main_url'], '/')).'$/i',
 		//	$current_url, $matches);
 
@@ -116,7 +116,7 @@ class imgbrowz0r
 
 		if ($raw_path)
 		{
-			$this->cur_directory = str_ireplace(array('<', '>', '"', '\'', '&',' ;', '..', '%'), '',
+			$this->cur_directory = str_ireplace(array('<', '>', '"', '\'', '&',' ;', '%', '..'), '',
 				substr($raw_path, 0, strrpos($raw_path, '/')).'/');
 			$this->cur_page = (int) substr($raw_path, strrpos($raw_path, '/') + 1);
 		}
@@ -331,6 +331,9 @@ class imgbrowz0r
 	// <p>, <strong>, <em>, <a>, <br />, <h1>, <h2> and <h3>
 	public function description()
 	{
+		#echo '<pre>', $this->full_path, '.desc</pre>';
+		#var_dump(file_exists($this->full_path.'.desc'));
+
 		if (file_exists($this->full_path.'.desc'))
 			return '<div class="img-description">'.
 			strip_tags(file_get_contents($this->full_path.'.desc'), '<p><strong><em><a><br><h1><h2><h3>').

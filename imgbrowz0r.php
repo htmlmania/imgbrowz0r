@@ -326,14 +326,11 @@ class imgbrowz0r
 		       ($this->cur_page < $this->page_count - 4 ? ' ... ' : ' ').$last.' '.$next.'</div>';
 	}
 
-	// Display description of the current directory
-	// Html tags are stripped from the description except the following tags:
-	// <p>, <strong>, <em>, <a>, <br />, <h1>, <h2> and <h3>
+	/* Display description of the current directory
+	   Html tags are stripped from the description except the following tags:
+	   <p>, <strong>, <em>, <a>, <br />, <h1>, <h2> and <h3> */
 	public function description()
 	{
-		#echo '<pre>', $this->full_path, '.desc</pre>';
-		#var_dump(file_exists($this->full_path.'.desc'));
-
 		if (file_exists($this->full_path.'.desc'))
 			return '<div class="img-description">'.
 			strip_tags(file_get_contents($this->full_path.'.desc'), '<p><strong><em><a><br><h1><h2><h3>').

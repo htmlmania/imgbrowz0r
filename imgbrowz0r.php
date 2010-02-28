@@ -70,7 +70,7 @@ class imgbrowz0r
 			                              $config['dir_sort_by'] : 3,
 			'dir_sort_order'           => isset($config['dir_sort_order']) ? $config['dir_sort_order'] : SORT_DESC,
 
-			'img_sort_by'              => isset($config['img_sort_by']) && in_array($config['img_sort_by'], array(1, 2, 3)) ?
+			'img_sort_by'              => isset($config['img_sort_by']) && in_array($config['img_sort_by'], array(1, 2, 3, 4)) ?
 			                              $config['img_sort_by'] : 3,
 			'img_sort_order'           => isset($config['img_sort_order']) ? $config['img_sort_order'] : SORT_DESC,
 
@@ -146,7 +146,28 @@ class imgbrowz0r
 
 				// Files (images)
 				else if (in_array(($image_extension = $this->get_ext($file)), $this->image_types))
-					$imgs[] = array(1, $file, $image_extension, filectime($this->full_path.'/'.$file));
+				{
+					if ($image_extension != 'png' && $image_extension != 'gif')
+					{
+						$exif_data = exif_read_data($this->full_path.'/'.$file);
+						$exif_time = isset($exif_data['DateTimeOriginal']) ? $exif_data['DateTimeOriginal'] : '2300:01:01 00:00:01';
+						$filectime =& $exif_data['FileDateTime'];
+
+						//echo '<pre>';
+						//print_r($exif_data);
+						//echo '</pre>';
+					}
+					else
+					{
+						$exif_time = '2300:01:01 00:00:01';
+						$filectime = filectime($this->full_path.'/'.$file);
+					}
+
+					$imgs[] = array(1, $file, $image_extension,
+						$filectime,
+						$exif_time
+						);
+				}
 			}
 
 			// Sort arrays
@@ -158,8 +179,13 @@ class imgbrowz0r
 
 			if (($this->count_imgs = count($imgs)) > 0)
 			{
-				foreach($imgs as $res2) $sort_files[] = $res2[$this->config['dir_sort_by']];
-				array_multisort($sort_files, $this->config['dir_sort_order'], $imgs);
+				foreach($imgs as $res2) $sort_files[] = $res2[$this->config['img_sort_by']];
+
+				// Use SORT_STRING when sorting by EXIF image data (Date Taken)
+				if ($this->config['img_sort_by'] == 4)
+					array_multisort($sort_files, SORT_STRING, $imgs);
+				else
+					array_multisort($sort_files, $this->config['dir_sort_order'], $imgs);
 			}
 
 			// Calculate pages

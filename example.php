@@ -42,7 +42,7 @@ $config = array(
 
 	// Sorting settings (optional)
 	'dir_sort_by'              => 3, // 1 = filename, 2 = extension (dir), 3 = inode change time of file
-	'img_sort_by'              => 3, // 1 = filename, 2 = extension (png, gif, etc.), 3 = inode change time of file, 4 = EXIF image data (Date Taken)
+	'img_sort_by'              => 3, // 1 = filename, 2 = extension (png, gif, etc.), 3 = inode change time of file or EXIF image data (Date Taken)
 
 	// The sort order settings can have the following values:
 	// SORT_ASC, SORT_DESC, SORT_REGULAR, SORT_NUMERIC, SORT_STRING

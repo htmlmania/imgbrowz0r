@@ -149,24 +149,19 @@ class imgbrowz0r
 				{
 					if ($image_extension != 'png' && $image_extension != 'gif')
 					{
+						// Use DateTimeOriginal when it exists instead of filectime
 						$exif_data = exif_read_data($this->full_path.'/'.$file);
-						$exif_time = isset($exif_data['DateTimeOriginal']) ? $exif_data['DateTimeOriginal'] : '2300:01:01 00:00:01';
-						$filectime =& $exif_data['FileDateTime'];
+						$timestamp = isset($exif_data['DateTimeOriginal']) ?
+							strtotime($exif_data['DateTimeOriginal']) : filectime($this->full_path.'/'.$file);
 
 						//echo '<pre>';
 						//print_r($exif_data);
-						//echo '</pre>';
+						//echo '<hr /></pre>';
 					}
 					else
-					{
-						$exif_time = '2300:01:01 00:00:01';
-						$filectime = filectime($this->full_path.'/'.$file);
-					}
+						$timestamp = filectime($this->full_path.'/'.$file);
 
-					$imgs[] = array(1, $file, $image_extension,
-						$filectime,
-						$exif_time
-						);
+					$imgs[] = array(1, $file, $image_extension, $timestamp);
 				}
 			}
 
@@ -180,12 +175,7 @@ class imgbrowz0r
 			if (($this->count_imgs = count($imgs)) > 0)
 			{
 				foreach($imgs as $res2) $sort_files[] = $res2[$this->config['img_sort_by']];
-
-				// Use SORT_STRING when sorting by EXIF image data (Date Taken)
-				if ($this->config['img_sort_by'] == 4)
-					array_multisort($sort_files, SORT_STRING, $imgs);
-				else
-					array_multisort($sort_files, $this->config['dir_sort_order'], $imgs);
+				array_multisort($sort_files, $this->config['dir_sort_order'], $imgs);
 			}
 
 			// Calculate pages

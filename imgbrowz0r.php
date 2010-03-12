@@ -153,10 +153,6 @@ class imgbrowz0r
 						$exif_data = exif_read_data($this->full_path.'/'.$file);
 						$timestamp = isset($exif_data['DateTimeOriginal']) ?
 							strtotime($exif_data['DateTimeOriginal']) : filectime($this->full_path.'/'.$file);
-
-						//echo '<pre>';
-						//print_r($exif_data);
-						//echo '<hr /></pre>';
 					}
 					else
 						$timestamp = filectime($this->full_path.'/'.$file);

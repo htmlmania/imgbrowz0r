@@ -23,7 +23,7 @@ Features
  - Valid XHTML 1.0 Strict output.
  - Easy to integrate into any website or CMS.
  - Easy to style and extend with CSS and Javascript.
- - Ability to configure time display, timezone and DST.
+ - Ability to configure time display and timezone.
  - Represent a directory with a (random) thumbnail.
  - Sorting of images can be configured.
  - Div (<div>) based layout for the gallery.
@@ -31,6 +31,16 @@ Features
    server as long it's reachable by the browser.
  - Support for gif, jpg, jpeg, jpe, jif, jfif, jfi and png images.
  - Page navigation and breadcrumbs.
+
+Requirements
+============
+
+ - PHP 5.2
+ - GD
+ - Exif
+
+Exif is most likely enabled in most PHP installations. See the PHP manual for
+more information: http://php.net/manual/en/exif.installation.php
 
 Installation
 ============
@@ -40,7 +50,7 @@ Installation
  - Make "cache" directory writable (linux command: chmod -R 0777 cache).
  - Drop some images and directories in "images" directory.
 
-That's a really basic setup. It's recommended to play with the condiguration
+That's a really basic setup. It's recommended to play with the configuration
 and try various things (url rewriting, CMS integration, etc.).
 
 Contact/Support
@@ -48,7 +58,7 @@ Contact/Support
 
 Project page: http://61924.nl/projects/imgbrowz0r.html
 Issues: http://github.com/FSX/imgbrowz0r/issues
-Demo: http://images.61924.nl/
+Demo (currently not working): http://images.61924.nl/
 
 Development
 ===========

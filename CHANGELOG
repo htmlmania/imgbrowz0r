@@ -1,9 +1,16 @@
 ImgBrowz0r changelog
 http://61924.nl/projects/imgbrowz0r.html
 
-0.3.7 - March ??th, 2010:
+0.3.7 - April ??th, 2010:
 
  - Added "sort by EXIF DateTimeOriginal". Patch provided by bc.
+ - Replaced scandir() with DirectoryIterator.
+ - The timezone configuration option now accepts a valid TZ database timezone
+   or `false`. When `false` is used the timezone setting will be skipped.
+ - The enable_dst configuration options has been dropped.
+ - Do not check if GD is enabled anymore.
+
+ TZ database timezones: http://en.wikipedia.org/wiki/List_of_tz_database_time_zones
 
 0.3.6 - February 16th, 2010:
 

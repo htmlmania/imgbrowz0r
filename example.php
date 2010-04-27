@@ -58,8 +58,13 @@ $config = array(
 
 	// Time settings (optional)
 	'time_format'              => 'F jS, Y', // Date formatting. Look at the PHP date() for help: http://nl3.php.net/manual/en/function.date.php
-	'time_zone'                => 0, // Timezone. Example: 1
-	'enable_dst'               => false, // Daylight saving time (DST). Set this to true to enable it.
+
+	// Pick a valid timezone from http://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+	// Use `false` to disable the timezone option
+	'time_zone'                => 'Europe/Amsterdam',
+
+	// Daylight saving time (DST). Set this to true to enable it.
+	'enable_dst'               => false,
 
 	// Misc settings (optional)
 	'ignore_port'              => false, // Ignore port in url. Set this to true to ignore the port.

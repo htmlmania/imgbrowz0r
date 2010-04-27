@@ -3,7 +3,7 @@
 /* ---
 
 	ImgBrowz0r, a simple PHP5 Gallery class
-	Version 0.3.6, February 16th, 2010
+	Version 0.3.7, April ??th, 2010
 	http://61924.nl/projects/imgbrowz0r.html
 
 	Copyright (c) 2008-2010 Frank Smit
@@ -30,7 +30,7 @@
 
 --- */
 
-define('IMGBROWZ0R_VERSION', '0.3.6');
+define('IMGBROWZ0R_VERSION', '0.3.7');
 
 class imgbrowz0r
 {
@@ -38,60 +38,58 @@ class imgbrowz0r
 	          $count_files = 0, $count_dirs = 0, $count_imgs = 0, $full_path;
 
 	// All image extensions/types that browsers support
-	protected $image_types = array('gif', 'jpg', 'jpeg', 'jpe', 'jif', 'jfif', 'jfi', 'png');
+    protected $image_types = array('.gif' => '', '.jpg' => '', '.jpeg' => '', '.jpe' => '',
+                                   '.jif' => '', '.jfif' => '', '.jfi' => '', '.png' => '');
 
 	public $status = 200;
 
 	// Check if GD is loaded and set configuration
 	public function __construct($config)
 	{
-		// First check if GD is enabled
-		if (!function_exists('gd_info'))
-			exit('<p><a href="http://www.php.net/manual/en/book.image.php">GD</a> is not enabled!</p>');
-
 		// Check if all the required values are set
 		if (!isset($config['images_dir']) || !isset($config['cache_dir']) || !isset($config['main_url']) ||
 		    !isset($config['images_url']) || !isset($config['cache_url']))
 			exit('"images_dir", "cache_dir", "main_url", "images_url" or "cache_url" is not set! Please check your configuration.');
 
 		// Set configuration
-		$this->config = array(
-			// Directory settings
-			'images_dir'               => $config['images_dir'],
-			'cache_dir'                => $config['cache_dir'],
+		$this->config = array();
 
-			// Url settings
-			'main_url'                 => $config['main_url'],
-			'images_url'               => $config['images_url'],
-			'cache_url'                => $config['cache_url'],
+		// Directory settings
+		$this->config['images_dir']          = $config['images_dir'];
+		$this->config['cache_dir']           = $config['cache_dir'];
 
-			// Sorting settings
-			'dir_sort_by'              => isset($config['dir_sort_by']) && in_array($config['dir_sort_by'], array(1, 2, 3)) ?
-			                              $config['dir_sort_by'] : 3,
-			'dir_sort_order'           => isset($config['dir_sort_order']) ? $config['dir_sort_order'] : SORT_DESC,
+		// Url settings
+		$this->config['main_url']            = $config['main_url'];
+		$this->config['images_url']          = $config['images_url'];
+		$this->config['cache_url']           = $config['cache_url'];
 
-			'img_sort_by'              => isset($config['img_sort_by']) && in_array($config['img_sort_by'], array(1, 2, 3, 4)) ?
-			                              $config['img_sort_by'] : 3,
-			'img_sort_order'           => isset($config['img_sort_order']) ? $config['img_sort_order'] : SORT_DESC,
+		// Sorting settings
+		$this->config['dir_sort_by']         = isset($config['dir_sort_by']) && in_array($config['dir_sort_by'], array(1, 2, 3)) ?
+		                                       $config['dir_sort_by'] : 3;
+		$this->config['dir_sort_order']      = isset($config['dir_sort_order']) ? $config['dir_sort_order'] : SORT_DESC;
 
-			// Thumbnail settings
-			'thumbs_per_page'          => isset($config['thumbs_per_page']) ? $config['thumbs_per_page'] : 12,
-			'max_thumb_row'            => isset($config['max_thumb_row']) ? $config['max_thumb_row'] : 4,
-			'max_thumb_width'          => isset($config['max_thumb_width']) ? $config['max_thumb_width'] : 200,
-			'max_thumb_height'         => isset($config['max_thumb_height']) ? $config['max_thumb_height'] : 200,
+		$this->config['img_sort_by']         = isset($config['img_sort_by']) && in_array($config['img_sort_by'], array(1, 2, 3, 4)) ?
+		                                       $config['img_sort_by'] : 3;
+		$this->config['img_sort_order']      = isset($config['img_sort_order']) ? $config['img_sort_order'] : SORT_DESC;
 
-			// Time settings
-			'time_format'              => isset($config['time_format']) ? $config['time_format'] : 'F jS, Y',
-			'time_zone'                => isset($config['time_zone']) ? $config['time_zone'] * 3600 : 0,
-			'enable_dst'               => isset($config['enable_dst']) && $config['enable_dst'] ? 1 : 0,
+		// Thumbnail settings
+		$this->config['thumbs_per_page']     = isset($config['thumbs_per_page']) ? $config['thumbs_per_page'] : 12;
+		$this->config['max_thumb_row']       = isset($config['max_thumb_row']) ? $config['max_thumb_row'] : 4;
+		$this->config['max_thumb_width']     = isset($config['max_thumb_width']) ? $config['max_thumb_width'] : 200;
+		$this->config['max_thumb_height']    = isset($config['max_thumb_height']) ? $config['max_thumb_height'] : 200;
 
-			// Misc settings
-			'ignore_port'              => isset($config['ignore_port']) && $config['ignore_port']  ? true : false,
-			'dir_thumbs'               => isset($config['dir_thumbs']) && $config['dir_thumbs']  ? true : false,
-			'random_thumbs'            => isset($config['random_thumbs']) && $config['random_thumbs']  ? true : false,
-			'read_thumb_limit'         => isset($config['read_thumb_limit']) && is_numeric($config['read_thumb_limit'])
-			                              && $config['read_thumb_limit'] >= 0 ? $config['read_thumb_limit'] : 0
-		);
+		// Time and timezone settings
+		$this->config['time_format']         = isset($config['time_format']) ? $config['time_format'] : 'F jS, Y';
+		$this->config['time_zone']           = isset($config['time_zone']) ? $config['time_zone']: 'Europe/Amsterdam';
+
+		if ($this->config['time_zone'])
+			date_default_timezone_set($this->config['time_zone']);
+
+		// Misc settings
+		$this->config['ignore_port']         = isset($config['ignore_port']) && $config['ignore_port']  ? true : false;
+		$this->config['dir_thumbs']          = isset($config['dir_thumbs']) && $config['dir_thumbs']  ? true : false;
+		$this->config['random_thumbs']       = isset($config['random_thumbs']) && $config['random_thumbs']  ? true : false;
+		$this->config['read_thumb_limit']    = isset($config['read_thumb_limit']) ? $config['read_thumb_limit'] : 0;
 
 		if (!$this->config['random_thumbs'])
 			$this->config['read_thumb_limit'] = 1;
@@ -100,15 +98,15 @@ class imgbrowz0r
 	public function init()
 	{
 		// Get current url
-		$protocol = !isset($_SERVER['HTTPS']) || strtolower($_SERVER['HTTPS']) == 'off' ? 'http://' : 'https://';
+		$protocol = !isset($_SERVER['HTTPS']) || strtolower($_SERVER['HTTPS']) === 'off' ? 'http://' : 'https://';
 		$port = !$this->config['ignore_port'] && (isset($_SERVER['SERVER_PORT']) && (($_SERVER['SERVER_PORT'] != '80'
-		        && $protocol == 'http://') || ($_SERVER['SERVER_PORT'] != '443' && $protocol == 'https://'))
+		        && $protocol === 'http://') || ($_SERVER['SERVER_PORT'] != '443' && $protocol === 'https://'))
 		        && !strpos($_SERVER['HTTP_HOST'], ':')) ? ':'.$_SERVER['SERVER_PORT'] : '';
 		$current_url = urldecode($protocol.$_SERVER['HTTP_HOST'].$port.$_SERVER['REQUEST_URI']);
 
 		// Regex - extract the path and page number from the URL
-		preg_match('/^'.str_ireplace('%PATH%', '([^%]+)', preg_quote($this->config['main_url'], '/')).'$/i', $current_url, $matches);
-		//preg_match('/^'.str_ireplace('%PATH%', '([A-Za-z0-9 \/\-_\.]+)', preg_quote($this->config['main_url'], '/')).'$/i',
+		preg_match('/^'.str_replace('%PATH%', '([^%]+)', preg_quote($this->config['main_url'], '/')).'$/i', $current_url, $matches);
+		//preg_match('/^'.str_replace('%PATH%', '([A-Za-z0-9 \/\-_\.]+)', preg_quote($this->config['main_url'], '/')).'$/i',
 		//	$current_url, $matches);
 
 		// Set current path/directory and page number
@@ -116,7 +114,7 @@ class imgbrowz0r
 
 		if ($raw_path)
 		{
-			$this->cur_directory = str_ireplace(array('<', '>', '"', '\'', '&',' ;', '%', '..'), '',
+			$this->cur_directory = str_replace(array('<', '>', '"', '\'', '&',' ;', '%', '..'), '',
 				substr($raw_path, 0, strrpos($raw_path, '/')).'/');
 			$this->cur_page = (int) substr($raw_path, strrpos($raw_path, '/') + 1);
 		}
@@ -126,7 +124,7 @@ class imgbrowz0r
 			$this->cur_page = 1;
 		}
 
-		if ($this->cur_directory == '0/' || $this->cur_directory == '/')
+		if ($this->cur_directory === '0/' || $this->cur_directory === '/')
 			$this->cur_directory = false;
 
 		$dirs = $imgs = array();
@@ -135,31 +133,33 @@ class imgbrowz0r
 		// Read current directory and put all the directories and images in an array
 		if (is_dir($this->full_path))
 		{
-			$files = scandir($this->full_path);
+            $dir = new DirectoryIterator($this->full_path);
 
-			// Scan directories and files
-			foreach ($files as $file)
-			{
-				// Directories
-				if (is_dir($this->full_path.'/'.$file) && $file != '.' && $file != '..')
-					$dirs[] = array(0, $file, 'dir', filectime($this->full_path.'/'.$file));
+            foreach ($dir as $fi)
+            {
+				$filename = $fi->getFilename();
+				$type = $fi->getType();
 
-				// Files (images)
-				else if (in_array(($image_extension = $this->get_ext($file)), $this->image_types))
+				if ($type === 'dir' && $filename[0] != '.')
+				{
+					$dirs[] = array(0, $filename, 'dir', $fi->getCTime());
+				}
+				elseif ($type === 'file' && isset($this->image_types[$image_extension = $this->get_ext($filename)]))
 				{
 					if ($image_extension != 'png' && $image_extension != 'gif')
 					{
 						// Use DateTimeOriginal when it exists instead of filectime
-						$exif_data = exif_read_data($this->full_path.'/'.$file);
-						$timestamp = isset($exif_data['DateTimeOriginal']) ?
-							strtotime($exif_data['DateTimeOriginal']) : filectime($this->full_path.'/'.$file);
+						$exif_data = @exif_read_data($fi->getPathname());
+						$timestamp = $exif_data && isset($exif_data['DateTimeOriginal']) ? strtotime($exif_data['DateTimeOriginal']) : $fi->getCTime();
 					}
 					else
-						$timestamp = filectime($this->full_path.'/'.$file);
+						$timestamp = $fi->getCTime();
 
-					$imgs[] = array(1, $file, $image_extension, $timestamp);
+					$imgs[] = array(1, $filename, $image_extension, $timestamp);
 				}
-			}
+            }
+
+			unset($dir);
 
 			// Sort arrays
 			if (($this->count_dirs = count($dirs)) > 0)
@@ -170,7 +170,7 @@ class imgbrowz0r
 
 			if (($this->count_imgs = count($imgs)) > 0)
 			{
-				foreach($imgs as $res2) $sort_files[] = $res2[$this->config['img_sort_by']];
+				foreach($imgs as $res) $sort_files[] = $res[$this->config['img_sort_by']];
 				array_multisort($sort_files, $this->config['dir_sort_order'], $imgs);
 			}
 
@@ -211,16 +211,18 @@ class imgbrowz0r
 		{
 			if ($file[0] === 1)
 			{
-				$image_cache_dir = md5($this->cur_directory);
+				$image_cache_dir = crc32($this->cur_directory);
 				$image_thumbnail = $image_cache_dir.'/'.$file[3].'_'.$file[1]; // The name of the thumbnail
-
-				// Create the directory where the thumbnail is stored if it doesn't exist
-				if (!is_dir($this->config['cache_dir'].'/'.$image_cache_dir))
-					mkdir($this->config['cache_dir'].'/'.$image_cache_dir, 0777);
 
 				// Generate thumbnail if there isn't one
 				if (!file_exists($this->config['cache_dir'].'/'.$image_thumbnail))
+				{
+					// Create the directory where the thumbnail is stored if it doesn't exist
+					if (!is_dir($this->config['cache_dir'].'/'.$image_cache_dir))
+						mkdir($this->config['cache_dir'].'/'.$image_cache_dir, 0777);
+
 					$this->make_thumb($this->cur_directory, $file[1], $image_thumbnail);
+				}
 
 				// Image thumbnail markup
 				echo "\t\t", '<div class="img-thumbnail img-column-', $row_count, '"><a href="', $this->config['images_url'],
@@ -232,7 +234,7 @@ class imgbrowz0r
 			{
 				if ($this->config['dir_thumbs'])
 				{
-					$dir_hash = md5($this->cur_directory.$file[1].'/');
+					$dir_hash = crc32($this->cur_directory.$file[1].'/');
 
 					// Get a list of thumbnails
 					$dir_thumbs = $this->read_cache($dir_hash, $this->cur_directory.$file[1].'/');
@@ -356,7 +358,7 @@ class imgbrowz0r
 		$image_info = $this->get_image_info($this->config['images_dir'].'/'.$image_dir.'/'.$image_name);
 
 		// Check if file is an supported image type
-		if (!in_array($image_info['extension'], $this->image_types))
+		if (!isset($this->image_types[$image_info['extension']]))
 			return false;
 
 		// Open the image so we can make a thumbnail
@@ -433,19 +435,23 @@ class imgbrowz0r
 		if (is_dir($this->config['cache_dir'].'/'.$cache_path))
 		{
 			$file_count = 0;
-			$files = scandir($this->config['cache_dir'].'/'.$cache_path);
+			$dir = new DirectoryIterator($this->config['cache_dir'].'/'.$cache_path);
 
-			foreach ($files as $file)
+			foreach ($dir as $index => $fi)
 			{
-				if (in_array($this->get_ext($file), $this->image_types))
+				$filename = $fi->getFilename();
+
+				if (isset($this->image_types[$this->get_ext($filename)]))
 				{
-					$thumbnails[] = $file;
+					$thumbnails[] = $filename;
 					++$file_count;
 
 					if ($file_count === $this->config['read_thumb_limit'])
 						break;
 				}
 			}
+
+			unset($dir);
 		}
 		else
 			mkdir($this->config['cache_dir'].'/'.$cache_path, 0777);
@@ -454,26 +460,30 @@ class imgbrowz0r
 		if (!isset($thumbnails[0]))
 		{
 			$file_count = 0;
-			$files = scandir($this->config['images_dir'].'/'.$category_path);
+			$dir = new DirectoryIterator($this->config['images_dir'].'/'.$category_path);
 
-			foreach ($files as $file)
+			foreach ($dir as $fi)
 			{
-				if (in_array($this->get_ext($file), $this->image_types))
+				$filename = $fi->getFilename();
+
+				if (isset($this->image_types[$this->get_ext($filename)]))
 				{
 					// The name of the thumbnail
-					$image_thumbnail = $cache_path.'/'.filectime($this->config['images_dir'].'/'.$category_path.'/'.$file).'_'.$file;
+					$image_thumbnail = $cache_path.'/'.filectime($this->config['images_dir'].'/'.$category_path.'/'.$filename).'_'.$filename;
 
 					$thumbnails[] = basename($image_thumbnail);
-					$this->make_thumb($category_path, $file, $image_thumbnail);
+					$this->make_thumb($category_path, $filename, $image_thumbnail);
 
 					++$file_count;
 
-					// Change 1 to a higher number if you want to generate more thumbnails for a directory,
-					// but this also takes more time and memory.
+					// Change 1 to a higher number if you want to generate more thumbnails
+					// for a directory, but this also takes more time and memory.
 					if ($file_count === 1)
 						break;
 				}
 			}
+
+			unset($dir);
 		}
 
 		return $thumbnails;
@@ -482,7 +492,7 @@ class imgbrowz0r
 	// Format unix timestamp to a human readable date
 	protected function format_time($timestamp)
 	{
-		return gmdate($this->config['time_format'], ($timestamp + $this->config['time_zone']));
+		return date($this->config['time_format'], $timestamp);
 	}
 
 	// Get info from image (width, height, type, extension)
@@ -498,11 +508,11 @@ class imgbrowz0r
 			'extension' => $this->get_ext($filepath));
 	}
 
-	// Get extension from filename (returns the extension without the dot)
+	// Get extension from filename (returns the extension with the dot)
 	protected function get_ext($filename)
 	{
 		// return strtolower(pathinfo($filename, PATHINFO_EXTENSION));
-		return strtolower(substr($filename, strrpos($filename, '.') + 1)); // This is a bit faster
+		return strtolower(substr($filename, strrpos($filename, '.'))); // This is a bit faster
 	}
 }
 

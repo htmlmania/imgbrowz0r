@@ -32,9 +32,9 @@
 
 define('IMGBROWZ0R_VERSION', '0.3.7');
 
-class imgbrowz0r
+class ImgBrowz0r
 {
-	protected $config, $cur_directory, $cur_page, $files, $page_count,
+	protected $config, $cache, $output, $cur_directory, $cur_page, $files, $page_count,
 	          $count_files = 0, $count_dirs = 0, $count_imgs = 0, $full_path;
 
 	// All image extensions/types that browsers support
@@ -44,7 +44,7 @@ class imgbrowz0r
 	public $status = 200;
 
 	// Check if GD is loaded and set configuration
-	public function __construct($config)
+	public function __construct($config, $cache = null)
 	{
 		// Check if all the required values are set
 		if (!isset($config['images_dir']) || !isset($config['cache_dir']) || !isset($config['main_url']) ||
@@ -93,6 +93,8 @@ class imgbrowz0r
 
 		if (!$this->config['random_thumbs'])
 			$this->config['read_thumb_limit'] = 1;
+
+		$this->cache = $cache;
 	}
 
 	public function init()
@@ -130,9 +132,19 @@ class imgbrowz0r
 		$dirs = $imgs = array();
 		$this->full_path = !$this->cur_directory ? $this->config['images_dir'].'/' : $this->config['images_dir'].'/'.$this->cur_directory;
 
-		// Read current directory and put all the directories and images in an array
 		if (is_dir($this->full_path))
 		{
+			if ($this->cache && $data = $this->cache->read('dc-'.crc32($this->full_path).'-'.$this->cur_page))
+			{
+				list($this->count_dirs, $this->count_imgs, $this->count_files,
+					$this->page_count, $this->output) = $data;
+
+				$this->cur_page = $this->cur_page > 0 && $this->cur_page <= $this->page_count ? $this->cur_page : 1;
+
+				return;
+			}
+
+			// Read current directory and put all the directories and images in an array
             $dir = new DirectoryIterator($this->full_path);
 
             foreach ($dir as $fi)
@@ -171,7 +183,7 @@ class imgbrowz0r
 			if (($this->count_imgs = count($imgs)) > 0)
 			{
 				foreach($imgs as $res) $sort_files[] = $res[$this->config['img_sort_by']];
-				array_multisort($sort_files, $this->config['dir_sort_order'], $imgs);
+				array_multisort($sort_files, $this->config['img_sort_order'], $imgs);
 			}
 
 			// Calculate pages
@@ -199,6 +211,9 @@ class imgbrowz0r
 		else if ($this->count_files === 0)
 			return '<div id="imgbrowz0r">'."\n\t".'<p class="img-empty-directory">There are no images or directories in this directory.</p>'.
 			       "\n".'</div>'."\n";
+
+		if ($this->output)
+			return $this->output;
 
 		#@set_time_limit(180); // 3 Minutes
 		$row_count = 1;
@@ -271,8 +286,21 @@ class imgbrowz0r
 
 		echo "\t", '</div>', "\n\n\t", '<div class="clear">&nbsp;</div>', "\n", '</div>', "\n\n";
 
+		$this->output = ob_get_clean();
+
+		if ($this->cache)
+		{
+			$this->cache->write('dc-'.crc32($this->full_path).'-'.$this->cur_page, array(
+				$this->count_dirs,
+				$this->count_imgs,
+				$this->count_files,
+				$this->page_count,
+				$this->output,
+			));
+		}
+
 		// Stop capturing output
-		return ob_get_clean();
+		return $this->output;
 	}
 
 	// Returns the image/directory count
@@ -516,4 +544,30 @@ class imgbrowz0r
 	}
 }
 
-?>
+class ImgBrowz0rCache
+{
+	private $cache_path, $cache_lifetime;
+
+	public function __construct($cache_path = '/tmp', $cache_lifetime = 3600)
+	{
+		$this->cache_path = $cache_path;
+		$this->cache_lifetime = $cache_lifetime;
+	}
+
+	public function read($name)
+	{
+		if (file_exists($this->cache_path.'/'.$name.'.php') &&
+		    (time() - filectime($this->cache_path.'/'.$name.'.php')) < $this->cache_lifetime)
+		{
+			return require $this->cache_path.'/'.$name.'.php';
+		}
+
+		return false;
+	}
+
+	public function write($name, $data)
+	{
+		return file_put_contents($this->cache_path.'/'.$name.'.php',
+			'<?php return '.var_export($data, true).';');
+	}
+}

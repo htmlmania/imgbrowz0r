@@ -56,8 +56,8 @@ $config = array(
 	'max_thumb_width'          => 200, // Maximum width of thumbnail
 	'max_thumb_height'         => 200, // Maximum height of thumbnail
 
-	// Time settings (optional)
-	'time_format'              => 'F jS, Y', // Date formatting. Look at the PHP date() for help: http://nl3.php.net/manual/en/function.date.php
+	// Date formatting. Look at the PHP date() for help: http://php.net/manual/en/function.date.php
+	'time_format'              => 'F jS, Y',
 
 	// Pick a valid timezone from http://en.wikipedia.org/wiki/List_of_tz_database_time_zones
 	// Use `false` to disable the timezone option
@@ -73,8 +73,25 @@ $config = array(
 	'read_thumb_limit'         => 0 // See README for information about this setting.
 	);
 
+// Setup cache
+$gallery_cache = new ImgBrowz0rCache(
+	$config['cache_dir'], // The location of the cache directory. In this case the smae as imgBrowz0r's one.
+	3600 // The amount of seconds the cache is valid.
+);
+
 // Start the class
-$gallery = new imgbrowz0r($config);
+$gallery = new ImgBrowz0r($config, $gallery_cache);
+
+/* The cache is optional. If you don't want to use the cache you can remove
+the "Setup cache" part and replace this:
+
+    $gallery = new ImgBrowz0r($config, $gallery_cache);
+
+With:
+
+    $gallery = new ImgBrowz0r($config);
+
+*/
 
 // XHTML stuff
 ?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"

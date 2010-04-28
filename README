@@ -87,7 +87,7 @@ Information about certain things.
     the cache it will take more time to read all the files in the cache.
 
     You can set this to 10 to speedup the process, but it will only choose a random
-    thumbnail of out 10.
+    thumbnail of out the 10 first files it reads from the thumbnail cache.
 
   - Description for directories
 
@@ -104,3 +104,28 @@ Information about certain things.
      - Use valid HTML in your description to avoid unexpected behaviour.
      - Look for more info at:
        http://php.net/manual/en/function.strip-tags.php
+
+  - Caching
+
+    A small caching class, `ImgBrowz0rCache`, is provided with ImgBrowz0r. An instance
+    of this class is passed to the ImgBrowz0r constructor to let ImgBrowz0r use the
+    function of the caching class (see example.php for an example).
+
+    This class can easily be replaced with an other cache as long as the other class
+    has a public write and read method.
+
+    A skeleton of of a caching class for ImgBrowz0r:
+
+    class AlternativeImgBrowz0rCache
+    {
+        public function read($name)
+        {
+        }
+
+        public function write($name, $data)
+        {
+        }
+    }
+
+    $name is the filename without the extension. The class must decide which extension
+    to use. $data is an array. The read method must return the same array which was cached.

@@ -9,8 +9,10 @@ http://61924.nl/projects/imgbrowz0r.html
    or `false`. When `false` is used the timezone setting will be skipped.
  - The enable_dst configuration options has been dropped.
  - Do not check if GD is enabled anymore.
+ - Renamed the `imgbrowz0r` class to `ImgBrowz0r`.
+ - Added small, optional, replaceable caching class.
 
- TZ database timezones: http://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+TZ database timezones: http://en.wikipedia.org/wiki/List_of_tz_database_time_zones
 
 0.3.6 - February 16th, 2010:
 

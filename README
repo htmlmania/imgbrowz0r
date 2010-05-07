@@ -7,11 +7,11 @@ it into a CMS or your existing website. You can also configure various other thi
 sorting order and thumbnail sizes (etc. etc.).
 
 It does things like generating thumbnails, generating pagination/breadcrumbs and outputs
-XHTML that is provided with classes and ID's so everything can be extended and changed
-with Javascript and CSS.
+XHTML that has sufficient classes and ID's to make it easy to adjust and extend everything
+with CSS and Javascript.
 
-The only thing you have to do is install it and upload your images. And maybe clean
-the cache once in a while.
+The only thing you have to do is install it and upload your images and you're done. And
+maybe clean the cache once in a while.
 
 Features
 ========
@@ -25,12 +25,13 @@ Features
  - Easy to style and extend with CSS and Javascript.
  - Ability to configure time display and timezone.
  - Represent a directory with a (random) thumbnail.
- - Sorting of images can be configured.
- - Div (<div>) based layout for the gallery.
+ - Sorting of images and directories can be configured.
+ - Tableless based layout for the gallery.
  - Images (and the cache) can be stored on different locations/(sub)domains on the
    server as long it's reachable by the browser.
  - Support for gif, jpg, jpeg, jpe, jif, jfif, jfi and png images.
  - Page navigation and breadcrumbs.
+ - File information and output caching to speed everything up.
 
 Requirements
 ============

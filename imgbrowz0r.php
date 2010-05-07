@@ -30,6 +30,13 @@
 
 --- */
 
+/* ---
+
+	TODO:
+	 - Improve pagination function.
+
+--- */
+
 define('IMGBROWZ0R_VERSION', '0.3.7');
 
 class ImgBrowz0r
@@ -355,17 +362,60 @@ class ImgBrowz0r
 		$first = $this->cur_page === 1 ? '<strong class="img-current-page">1</strong>' : '<a href="'.str_ireplace('%PATH%', $cur_dir.'/1',
 		         $this->config['main_url']).'">1</a>';
 		$last = $this->cur_page === $this->page_count ? '<strong class="img-current-page">'.$this->page_count.'</strong>' : '<a href="'.
-		        str_ireplace('%PATH%', $cur_dir.'/'.$this->page_count, $this->config['main_url']).'">'.$this->page_count.'</a>';
+		        str_replace('%PATH%', $cur_dir.'/'.$this->page_count, $this->config['main_url']).'">'.$this->page_count.'</a>';
 
 		// Other pages
 		for ($x = $current_range[0];$x <= $current_range[1];++$x)
 		{
-			$pages[] = '<a href="'.str_ireplace('%PATH%', $cur_dir.'/'.$x, $this->config['main_url']).'">'.($x == $this->cur_page ? '<strong>'.
+			$pages[] = '<a href="'.str_replace('%PATH%', $cur_dir.'/'.$x, $this->config['main_url']).'">'.($x == $this->cur_page ? '<strong>'.
 			           $x.'</strong>' : $x).'</a>';
 		}
 
 		return '<div class="img-pagination"><span>Pages: </span>'.$prev.' '.$first.($this->cur_page > 5 ? ' ... ' : ' ').implode(' ', $pages).
 		       ($this->cur_page < $this->page_count - 4 ? ' ... ' : ' ').$last.' '.$next.'</div>';
+	}
+
+	public function _pagination()
+	{
+		// Check status code and page count
+		if ($this->status === 404 || $this->page_count < 2)
+			return;
+
+		$cur_dir = $this->cur_directory ? rtrim($this->cur_directory, '/') : 0;
+		$pages = $page_range = array();
+
+		// Calculate range
+		$lowest = $this->cur_page - 3 < 2 ? 2 : $this->cur_page - 3;
+		$highest = $this->cur_page + 3 > $this->page_count-1 ? $this->page_count-1 : $this->cur_page + 3;
+
+		if ($this->page_count > 7)
+		{
+			$range_padding = array(-1 => 4, 0 => 3, 1 => 2, 2 => 1, 3 => 0);
+			$page_range = range(
+				$lowest - $range_padding[$highest - $this->cur_page],
+				$highest + $range_padding[$this->cur_page - $lowest]);
+		}
+		elseif ($this->page_count > 2)
+			$page_range = range($lowest, $highest);
+
+		// Previous and first page links
+		$pages[] = $this->cur_page > 1 ? '<a href="'.str_replace('%PATH%', $cur_dir.'/'.($this->cur_page-1), $this->config['main_url']).'">Previous</a>' : '<span>Previous</span>';
+		$pages[] = '<a href="'.str_replace('%PATH%', $cur_dir.'/1', $this->config['main_url']).'">'.($this->cur_page == 1 ? '<strong>1</strong>' : '1').'</a>';
+
+		if ($this->cur_page > 5) $pages[] = '&hellip;';
+
+		// Pages that are in the range
+		foreach ($page_range as $nr)
+			$pages[] = '<a href="'.str_replace('%PATH%', $cur_dir.'/'.$nr, $this->config['main_url']).'">'.($this->cur_page == $nr ? '<strong>'.$nr.'</strong>' : $nr).'</a>';
+
+		if ($this->cur_page < $this->page_count-4) $pages[] = '&hellip;';
+
+		// Last and previous page links
+		$pages[] = '<a href="'.str_replace('%PATH%', $cur_dir.'/'.$this->page_count, $this->config['main_url']).'">'.($this->cur_page == $this->page_count ?
+			'<strong>'.$this->page_count.'</strong>' : $this->page_count).'</a>';
+		$pages[] = $this->cur_page < $this->page_count ? '<a href="'.str_replace('%PATH%', $cur_dir.'/'.($this->cur_page+1), $this->config['main_url']).'">Next</a>' : '<span>Next</span>';
+
+		return '<p class="pagination">'.implode('&nbsp;&nbsp;', $pages).'</p>';
 	}
 
 	/* Display description of the current directory

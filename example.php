@@ -218,13 +218,18 @@ $gallery_statistics = $gallery->statistics();
 echo $gallery->description();
 
 // Display navigation
-echo '<div class="imgbrowz0r-navigation">', "\n\t", $gallery_breadcrumbs, "\n\t", $gallery_pagination, "\n\t", $gallery_statistics, "\n", '</div>', "\n\n";
+echo '<div class="imgbrowz0r-navigation">', "\n\t",
+     $gallery_breadcrumbs, "\n\t",
+	 $gallery_pagination, "\n\t",
+	 $gallery_statistics, "\n", '</div>', "\n\n";
 
 // Display images and directories. (required)
 echo $gallery->browse();
 
 // Display navigation
-echo '<div class="imgbrowz0r-navigation">', "\n\t", $gallery_pagination, "\n\t", $gallery_breadcrumbs, "\n", '</div>', "\n\n";
+echo '<div class="imgbrowz0r-navigation">', "\n\t",
+     $gallery_pagination, "\n\t",
+	 $gallery_breadcrumbs, "\n", '</div>', "\n\n";
 
 // Showing some stats (optional)
 echo '<p>Processing time: ', round(get_microtime(microtime()) - get_microtime($start_timer), 5),

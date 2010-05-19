@@ -1,7 +1,7 @@
 ImgBrowz0r changelog
 http://61924.nl/projects/imgbrowz0r.html
 
-0.3.7 - April ??th, 2010:
+0.3.7 - May ??th, 2010:
 
  - Added "sort by EXIF DateTimeOriginal". Patch provided by bc.
  - Replaced scandir() with DirectoryIterator.
@@ -11,6 +11,7 @@ http://61924.nl/projects/imgbrowz0r.html
  - Do not check if GD is enabled anymore.
  - Renamed the `imgbrowz0r` class to `ImgBrowz0r`.
  - Added small, optional, replaceable caching class.
+ - A better pagination function.
 
 TZ database timezones: http://en.wikipedia.org/wiki/List_of_tz_database_time_zones
 

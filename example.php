@@ -103,14 +103,31 @@ With:
 	<title>ImgBrowz0r <?php echo IMGBROWZ0R_VERSION ?></title>
 
 	<style type="text/css">
-		body { padding: 0;margin:0;text-align: center;font-size:90%;line-height: 1.5;background-color: #fff;font-family: Tahoma, Verdana, sans-serif }
+		body {
+		  padding: 0;
+		  margin:0;
+		  font-family: "Lucida Grande", "Lucida Sans Unicode", "Lucida Sans", Verdana, Arial, sans-serif;
+		  text-align: center;
+		  font-size: 87%;
+		  line-height: 1.7em;
+		  color: #222;
+		  background-color: #fff }
 
-		a:link, a:visited { color: #F52542;text-decoration: underline }
-		a:hover, a:active { color: #333 }
+		a:link, a:visited {
+		  text-decoration: none;
+		  font-weight: bold;
+		  color: #EE3D40 }
+		a:hover, a:active { color: black }
 		strong { font-weight: bold }
 
+		.pagination a { font-weight: normal }
+
 		/* This is some example CSS. You can change this to your own liking. */
-		.img-description, .imgbrowz0r-navigation, #imgbrowz0r { margin: 0 auto;width: 970px;text-align: left }
+
+		.img-description, .imgbrowz0r-navigation, #imgbrowz0r {
+		  margin: 0 auto;
+		  width: 970px;
+		  text-align: left }
 		.imgbrowz0r-navigation { padding: 1.5em 0 0.5em }
 		.imgbrowz0r-navigation .img-statistics { margin-top: 1.5em }
 
@@ -120,28 +137,66 @@ With:
 
 		#imgbrowz0r .img-directory span.img-dir-name,
 		#imgbrowz0r .img-directory span.img-thumb-date { display: block }
-		#imgbrowz0r .img-directory span.img-dir-name { font-weight: bold;font-size: 1.2em }
+		#imgbrowz0r .img-directory span.img-dir-name {
+		  font-weight: bold;
+		  font-size: 1.2em }
 
 		#imgbrowz0r .img-column-1 { clear: left }
 
 		#imgbrowz0r .img-thumbnail,
-		#imgbrowz0r .img-directory { float: left;padding: 1.5em 0;width: 25%;text-align: center }
+		#imgbrowz0r .img-directory {
+		  float: left;
+		  padding: 1.5em 0;
+		  width: 25%;
+		  text-align: center }
 
 		#imgbrowz0r .img-thumbnail a,
 		#imgbrowz0r .img-directory a {
-			display: block;margin: 0 auto;
-			width: 200px;height: 160px;line-height: 150px;
-			background-repeat: no-repeat;background-position: 50% 50%; }
+		  display: block;
+		  margin: 0 auto;
+		  width: 200px;
+		  height: 160px;
+		  line-height: 150px;
+		  background-repeat: no-repeat;
+		  background-position: 50% 50% }
 
-		#imgbrowz0r .img-directory a:link, #imgbrowz0r .img-directory a:visited, #imgbrowz0r .img-thumbnail a:link,
-		#imgbrowz0r .img-thumbnail a:visited { background-color: #000;border: 1px solid #000;font-size: 1.5em;color: #ccc;text-decoration: none }
-		#imgbrowz0r .img-directory a:active, #imgbrowz0r .img-directory a:hover, #imgbrowz0r .img-thumbnail a:active,
-		#imgbrowz0r .img-thumbnail a:hover { border-color: #F52542;color: #F52542 }
+		#imgbrowz0r .img-directory a:link, #imgbrowz0r .img-directory a:visited,
+		#imgbrowz0r .img-thumbnail a:link,
+		#imgbrowz0r .img-thumbnail a:visited {
+		  background-color: #000;
+		  border: 3px solid #000;
+		  overflow: hidden; /* If the title of the directory is too long the overflowing
+		                       part will be hidden. Not a perfect solution. */
+		  font-size: 1.5em;
+		  color: #ccc;
+		  text-decoration: none }
+		#imgbrowz0r .img-directory a:active, #imgbrowz0r .img-directory a:hover,
+		#imgbrowz0r .img-thumbnail a:active,
+		#imgbrowz0r .img-thumbnail a:hover {
+		  border-color: #F52542;
+		  color: #F52542 }
+
+		#imgbrowz0r .img-directory a, #imgbrowz0r .img-thumbnail a {
+		  text-indent: -9999em }
+		#imgbrowz0r .img-no-thumbnail a {
+		  text-indent: 0 }
 
 		/* http://sonspring.com/journal/clearing-floats */
 		html body div.clear,
-		html body span.clear { background: none;border: 0;clear: both;display: block;float: none;font-size: 0;list-style: none;
-				       margin: 0;padding: 0;overflow: hidden;visibility: hidden;width: 0;height: 0 }
+		html body span.clear {
+		  background: none;
+		  border: 0;
+		  clear: both;
+		  display: block;
+		  float: none;
+		  font-size: 0;
+		  list-style: none;
+		  margin: 0;
+		  padding: 0;
+		  overflow: hidden;
+		  visibility: hidden;
+		  width: 0;
+		  height: 0 }
 	</style>
 </head>
 <body>

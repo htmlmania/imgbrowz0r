@@ -30,13 +30,6 @@
 
 --- */
 
-/* ---
-
-	TODO:
-	 - Improve pagination function.
-
---- */
-
 define('IMGBROWZ0R_VERSION', '0.3.7');
 
 class ImgBrowz0r
@@ -249,7 +242,7 @@ class ImgBrowz0r
 				// Image thumbnail markup
 				echo "\t\t", '<div class="img-thumbnail img-column-', $row_count, '"><a href="', $this->config['images_url'],
 				     '/', $this->cur_directory, $file[1], '" style="background-image: url(\'', $this->config['cache_url'], '/',
-					 $image_thumbnail, '\')" title="', $file[1], '">&nbsp;</a><span>', $this->format_time($file[3]),
+					 $image_thumbnail, '\')" title="', $file[1], '">', $file[1], '</a><span>', $this->format_time($file[3]),
 				     '</span></div>', "\n";
 			}
 			else
@@ -269,13 +262,13 @@ class ImgBrowz0r
 					// Directory thumbnail markup
 					echo "\t\t", '<div class="img-directory img-column-', $row_count, '"><a href="',
 					     str_ireplace('%PATH%',  $this->cur_directory.$file[1].'/1', $this->config['main_url']), '"',
-					     $dir_thumbnail, ' title="', $file[1], '">&nbsp;</a><span class="img-dir-name">', $file[1],
+					     $dir_thumbnail, ' title="', $file[1], '">', $file[1], '</a><span class="img-dir-name">', $file[1],
 					     '</span><span class="img-thumb-date">', $this->format_time($file[3]), '</span></div>', "\n";
 				}
 				else
 				{
 					// Display a directory without a thumbnail
-					echo "\t\t", '<div class="img-directory img-column-', $row_count, '"><a href="',
+					echo "\t\t", '<div class="img-directory img-no-thumbnail img-column-', $row_count, '"><a href="',
 					     str_ireplace('%PATH%',  $this->cur_directory.$file[1].'/1', $this->config['main_url']),
 					     '" title="', $file[1], '"><span>', $file[1], '</span></a><span>', $this->format_time($file[3]),
 					     '</span></div>', "\n";

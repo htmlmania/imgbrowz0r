@@ -32,6 +32,7 @@ Features
  - Support for gif, jpg, jpeg, jpe, jif, jfif, jfi and png images.
  - Page navigation and breadcrumbs.
  - File information and output caching to speed everything up.
+ - Reads Exif date from Jpeg images when possible (and use it for sorting).
 
 Requirements
 ============
@@ -48,7 +49,7 @@ Installation
 
  - Drop the files from this package into a web accessible directory.
  - Make two directories named "images" and "cache" in the ImgBrowz0r directory.
- - Make "cache" directory writable (linux command: chmod -R 0777 cache).
+ - Make "cache" directory writable (linux command: `chmod -R 0777 cache`).
  - Drop some images and directories in "images" directory.
 
 That's a really basic setup. It's recommended to play with the configuration

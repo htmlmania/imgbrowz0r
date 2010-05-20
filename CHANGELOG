@@ -7,11 +7,12 @@ http://61924.nl/projects/imgbrowz0r.html
  - Replaced scandir() with DirectoryIterator.
  - The timezone configuration option now accepts a valid TZ database timezone
    or `false`. When `false` is used the timezone setting will be skipped.
- - The enable_dst configuration options has been dropped.
+ - The enable_dst configuration option has been dropped.
  - Do not check if GD is enabled anymore.
  - Renamed the `imgbrowz0r` class to `ImgBrowz0r`.
  - Added small, optional, replaceable caching class.
  - A better pagination function.
+ - Use P tags instead of DIV tags to wrap the breadcrumbs, pagination and statistics.
 
 TZ database timezones: http://en.wikipedia.org/wiki/List_of_tz_database_time_zones
 

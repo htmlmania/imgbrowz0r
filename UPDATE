@@ -1,0 +1,17 @@
+<=0.3.6 --> 0.3.7
+=================
+
+0.3.7 has some changes in its configuration which makes it incompatible with
+previous versions.
+
+ - The ImgBrowz0r class has been renamed to 'ImgBrowz0r' from 'imgbrowz0r'.
+   Make sure you apply this change to all scripts where ImgBrowz0r is used.
+
+ - The timezone configuration option does not accept a number anymore. Instead
+   it needs a timezone string from the tz database. The list with timezones can
+   be found at: http://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+
+ - The enable_dst configuration option has been dropped, because the timezone
+   option takes care of this now (automatically).
+
+ - The Exif PHP extension is now required (to get information out of Jpeg photos).

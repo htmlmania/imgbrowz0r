@@ -31,8 +31,8 @@ require 'imgbrowz0r.php';
 // There is a chance that ImgBrowz0r stops working if you enter the wrong values.
 $config = array(
 	// Directory settings. These are required. Without trailing slash. (required)
-	'images_dir'               => '/var/www/imgbrowz0r/images',
-	'cache_dir'                => '/var/www/imgbrowz0r/cache',
+	'images_dir'               => dirname(__FILE__).'/images',
+	'cache_dir'                => dirname(__FILE__).'/cache',
 
 	// Url settings. These are required. Without trailing slash. (required)
 	// %PATH% is replaced with the directory location and page number
@@ -70,6 +70,7 @@ $config = array(
 	'ignore_port'              => false, // Ignore port in url. Set this to true to ignore the port.
 	'dir_thumbs'               => false, // Show a thumbnail in a category box. Default is false.
 	'random_thumbs'            => false, // Use random thumbnails for categories. Default is false.
+	                                     // NOTE: random_thumbs will not work when the cache is enabled.
 	'read_thumb_limit'         => 0 // See README for information about this setting.
 	);
 

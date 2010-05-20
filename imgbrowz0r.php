@@ -134,6 +134,8 @@ class ImgBrowz0r
 
 		if (is_dir($this->full_path))
 		{
+			$func_exif_exists = function_exists('exif_read_data');
+
 			if ($this->cache && $data = $this->cache->read('dc-'.crc32($this->full_path).'-'.$this->cur_page))
 			{
 				list($this->count_dirs, $this->count_imgs, $this->count_files,
@@ -158,7 +160,7 @@ class ImgBrowz0r
 				}
 				elseif ($type === 'file' && isset($this->image_types[$image_extension = $this->get_ext($filename)]))
 				{
-					if ($image_extension != 'png' && $image_extension != 'gif')
+					if ($func_exif_exists && $image_extension != 'png' && $image_extension != 'gif')
 					{
 						// Use DateTimeOriginal when it exists instead of filectime
 						$exif_data = @exif_read_data($fi->getPathname());
@@ -234,7 +236,10 @@ class ImgBrowz0r
 				{
 					// Create the directory where the thumbnail is stored if it doesn't exist
 					if (!is_dir($this->config['cache_dir'].'/'.$image_cache_dir))
-						mkdir($this->config['cache_dir'].'/'.$image_cache_dir, 0777);
+					{
+						mkdir($this->config['cache_dir'].'/'.$image_cache_dir);
+						chmod($this->config['cache_dir'].'/'.$image_cache_dir, 0777);
+					}
 
 					$this->make_thumb($this->cur_directory, $file[1], $image_thumbnail);
 				}
@@ -470,6 +475,8 @@ class ImgBrowz0r
 			imagegif($thumbnail, $this->config['cache_dir'].'/'.$image_thumbnail);
 		}
 
+		chmod($this->config['cache_dir'].'/'.$image_thumbnail, 0777);
+
 		// Destroy! (cleanup)
 		imagedestroy($image);
 		imagedestroy($thumbnail);
@@ -503,7 +510,10 @@ class ImgBrowz0r
 			unset($dir);
 		}
 		else
-			mkdir($this->config['cache_dir'].'/'.$cache_path, 0777);
+		{
+			mkdir($this->config['cache_dir'].'/'.$cache_path);
+			chmod($this->config['cache_dir'].'/'.$cache_path, 0777);
+		}
 
 		// Generate a thumbnail if none is found
 		if (!isset($thumbnails[0]))
@@ -588,7 +598,11 @@ class ImgBrowz0rCache
 
 	public function write($name, $data)
 	{
-		return file_put_contents($this->cache_path.'/'.$name.'.php',
+		$result = file_put_contents($this->cache_path.'/'.$name.'.php',
 			'<?php return '.var_export($data, true).';');
+
+		chmod($this->cache_path.'/'.$name.'.php', 0777);
+
+		return $result;
 	}
 }

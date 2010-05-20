@@ -14,4 +14,5 @@ previous versions.
  - The enable_dst configuration option has been dropped, because the timezone
    option takes care of this now (automatically).
 
- - The Exif PHP extension is now required (to get information out of Jpeg photos).
+ - There are some minor changes in the CSS. Take a look at the example.php file
+   to see what has been changed.

@@ -39,7 +39,7 @@ Requirements
 
  - PHP 5.2
  - GD
- - Exif
+ - Exif (optional)
 
 Exif is most likely enabled in most PHP installations. See the PHP manual for
 more information: http://php.net/manual/en/exif.installation.php

@@ -310,8 +310,8 @@ class ImgBrowz0r
 		if ($this->status === 404 || $this->count_files === 0)
 			return;
 
-		return '<div class="img-statistics">There '.($this->count_dirs !== 1 ? 'are '.$this->count_dirs.' directories' : 'is 1 directory').
-		       ' and '.($this->count_imgs !== 1 ? $this->count_imgs.' images' : '1 image').' in this directory.</div>';
+		return '<p class="img-statistics">There '.($this->count_dirs !== 1 ? 'are '.$this->count_dirs.' directories' : 'is 1 directory').
+		       ' and '.($this->count_imgs !== 1 ? $this->count_imgs.' images' : '1 image').' in this directory.</p>';
 	}
 
 	// Generate breadcrumbs
@@ -329,8 +329,8 @@ class ImgBrowz0r
 				$output[] = '<a href="'.str_ireplace('%PATH%',  implode('/', array_slice($path_parts, 0, ($k+1))).'/1' ,
 				            $this->config['main_url']).'">'.$part.'</a>';
 
-		return '<div class="img-breadcrumbs"><span>Breadcrumbs: </span><a href="'.str_ireplace('%PATH%',  '0/1', $this->config['main_url']).
-		       '">Root</a>'.(isset($output) ? ' / '.implode(' / ', $output) : null).'</div>';
+		return '<p class="img-breadcrumbs"><span>Breadcrumbs: </span><a href="'.str_ireplace('%PATH%',  '0/1', $this->config['main_url']).
+		       '">Root</a>'.(isset($output) ? ' / '.implode(' / ', $output) : null).'</p>';
 	}
 
 	// Generate page navigation

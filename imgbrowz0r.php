@@ -37,16 +37,17 @@ class ImgBrowz0r
 	protected $config, $cache, $output, $cur_directory, $cur_page, $files, $page_count,
 	          $count_files = 0, $count_dirs = 0, $count_imgs = 0, $full_path;
 
-	// All image extensions/types that browsers support
+	// All image extensions/types that browsers support. Jpeg, jpe, jif, jfif
+	// and jfi are actually just JPG images with other extensions
     protected $image_types = array('.gif' => '', '.jpg' => '', '.jpeg' => '', '.jpe' => '',
                                    '.jif' => '', '.jfif' => '', '.jfi' => '', '.png' => '');
 
 	public $status = 200;
 
-	// Check if GD is loaded and set configuration
+	// Load configuration
 	public function __construct($config, $cache = null)
 	{
-		// Check if all the required values are set
+		// Check if all the required values are set, otherwise we'll stop the script >:D
 		if (!isset($config['images_dir']) || !isset($config['cache_dir']) || !isset($config['main_url']) ||
 		    !isset($config['images_url']) || !isset($config['cache_url']))
 			exit('"images_dir", "cache_dir", "main_url", "images_url" or "cache_url" is not set! Please check your configuration.');
@@ -54,22 +55,27 @@ class ImgBrowz0r
 		// Set configuration
 		$this->config = array();
 
-		// Directory settings
+		// Required: Directory settings. These are required. Without trailing slash.
 		$this->config['images_dir']          = $config['images_dir'];
 		$this->config['cache_dir']           = $config['cache_dir'];
 
-		// Url settings
+		// Required: Url settings. These are required. Without trailing slash.
+		// %PATH% is replaced with the directory location and page number
 		$this->config['main_url']            = $config['main_url'];
 		$this->config['images_url']          = $config['images_url'];
 		$this->config['cache_url']           = $config['cache_url'];
 
-		// Sorting settings
+		// Optional: Sorting settings
 		$this->config['dir_sort_by']         = isset($config['dir_sort_by']) && in_array($config['dir_sort_by'], array(1, 2, 3)) ?
 		                                       $config['dir_sort_by'] : 3;
-		$this->config['dir_sort_order']      = isset($config['dir_sort_order']) ? $config['dir_sort_order'] : SORT_DESC;
 
 		$this->config['img_sort_by']         = isset($config['img_sort_by']) && in_array($config['img_sort_by'], array(1, 2, 3, 4)) ?
 		                                       $config['img_sort_by'] : 3;
+
+		/* Optional: The sort order settings can have the following values:
+		   SORT_ASC, SORT_DESC, SORT_REGULAR, SORT_NUMERIC, SORT_STRING
+		   SORT_ASC = ascending, SORT_DESC = descending */
+		$this->config['dir_sort_order']      = isset($config['dir_sort_order']) ? $config['dir_sort_order'] : SORT_DESC;
 		$this->config['img_sort_order']      = isset($config['img_sort_order']) ? $config['img_sort_order'] : SORT_DESC;
 
 		// Thumbnail settings
@@ -78,19 +84,35 @@ class ImgBrowz0r
 		$this->config['max_thumb_width']     = isset($config['max_thumb_width']) ? $config['max_thumb_width'] : 200;
 		$this->config['max_thumb_height']    = isset($config['max_thumb_height']) ? $config['max_thumb_height'] : 200;
 
-		// Time and timezone settings
+		// Optional: Date formatting. Look at the PHP date() for help:
+		// http://php.net/manual/en/function.date.php
 		$this->config['time_format']         = isset($config['time_format']) ? $config['time_format'] : 'F jS, Y';
+
+		// Optional: Pick a valid timezone from http://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+		// Use `false` to disable the timezone option
 		$this->config['time_zone']           = isset($config['time_zone']) ? $config['time_zone']: 'Europe/Amsterdam';
 
+		// Optional: Only set the timezone if it's not false.  Use the system timezone
+		// or the one that is configured in PHP.
 		if ($this->config['time_zone'])
 			date_default_timezone_set($this->config['time_zone']);
 
-		// Misc settings
+		/* Optional: Ignore port in url.  Set this to true to ignore the port.  It's possible
+		   that ImgBrowz0r will include a portnumber in the URL when it's behind
+		   a proxy.  You can prevent this by setting this value to false. */
 		$this->config['ignore_port']         = isset($config['ignore_port']) && $config['ignore_port']  ? true : false;
+
 		$this->config['dir_thumbs']          = isset($config['dir_thumbs']) && $config['dir_thumbs']  ? true : false;
 		$this->config['random_thumbs']       = isset($config['random_thumbs']) && $config['random_thumbs']  ? true : false;
+
+		/* Optional: When the "random thumbnail" function is enabled it reads the cache of the current
+		   category/directory to choose a random thumbnail. If there are a lot thumbnails in
+		   the cache it will take more time to read all the files in the cache.
+		   You can set this to 10 to speedup the process, but it will only choose a random
+		   thumbnail of out the 10 first files it reads from the thumbnail cache. */
 		$this->config['read_thumb_limit']    = isset($config['read_thumb_limit']) ? $config['read_thumb_limit'] : 0;
 
+		// Only one thumbnail is needed when random_thumbs is disabled.
 		if (!$this->config['random_thumbs'])
 			$this->config['read_thumb_limit'] = 1;
 
@@ -116,6 +138,9 @@ class ImgBrowz0r
 
 		if ($raw_path)
 		{
+			/* Filter potentially dangerous characters from the directory path.
+			   If not filtered properly there is a chance a directory traversal vulnerability
+			   will popup. */
 			$this->cur_directory = str_replace(array('<', '>', '"', '\'', '&',' ;', '%', '..'), '',
 				substr($raw_path, 0, strrpos($raw_path, '/')).'/');
 			$this->cur_page = (int) substr($raw_path, strrpos($raw_path, '/') + 1);
@@ -136,6 +161,9 @@ class ImgBrowz0r
 		{
 			$func_exif_exists = function_exists('exif_read_data');
 
+			/* Check if the cache is enabled and if a cache file exists.  If both
+			   conditions are met the cache file will be read and the the function
+			   will stop here, because there's no need to read all the files. */
 			if ($this->cache && $data = $this->cache->read('dc-'.crc32($this->full_path).'-'.$this->cur_page))
 			{
 				list($this->count_dirs, $this->count_imgs, $this->count_files,
@@ -160,9 +188,11 @@ class ImgBrowz0r
 				}
 				elseif ($type === 'file' && isset($this->image_types[$image_extension = $this->get_ext($filename)]))
 				{
+					/* Read the DateTimeOriginal from the Exif data when the Jpeg image
+					   if Exif has been enabled, otherwise use the inode change time
+					   of the file. */
 					if ($func_exif_exists && $image_extension != 'png' && $image_extension != 'gif')
 					{
-						// Use DateTimeOriginal when it exists instead of filectime
 						$exif_data = @exif_read_data($fi->getPathname());
 						$timestamp = $exif_data && isset($exif_data['DateTimeOriginal']) ? strtotime($exif_data['DateTimeOriginal']) : $fi->getCTime();
 					}
@@ -175,20 +205,21 @@ class ImgBrowz0r
 
 			unset($dir);
 
-			// Sort arrays
+			// Sort directories
 			if (($this->count_dirs = count($dirs)) > 0)
 			{
 				foreach($dirs as $res) $sort_dirs[] = $res[$this->config['dir_sort_by']];
 				array_multisort($sort_dirs, $this->config['dir_sort_order'], $dirs);
 			}
 
+			// Sort images
 			if (($this->count_imgs = count($imgs)) > 0)
 			{
 				foreach($imgs as $res) $sort_files[] = $res[$this->config['img_sort_by']];
 				array_multisort($sort_files, $this->config['img_sort_order'], $imgs);
 			}
 
-			// Calculate pages
+			// Calculate page count and current page
 			$this->page_count = (int) ceil(($this->count_dirs + $this->count_imgs) / $this->config['thumbs_per_page']);
 			$this->cur_page = $this->cur_page > 0 && $this->cur_page <= $this->page_count ? $this->cur_page : 1;
 
@@ -214,10 +245,15 @@ class ImgBrowz0r
 			return '<div id="imgbrowz0r">'."\n\t".'<p class="img-empty-directory">There are no images or directories in this directory.</p>'.
 			       "\n".'</div>'."\n";
 
+		/* If $this->output is not empty it means that a cache file has been read.
+		   So $this->output is returned and the function stops executing. */
 		if ($this->output)
 			return $this->output;
 
+		// It doesn't take that long to generate all the thumbnails, unless you
+		// display A LOT images on one page.
 		#@set_time_limit(180); // 3 Minutes
+
 		$row_count = 1;
 
 		// Start capturing output
@@ -228,13 +264,17 @@ class ImgBrowz0r
 		{
 			if ($file[0] === 1)
 			{
+				// The cache directory and the thumbnail of the current image (in this loop)
 				$image_cache_dir = crc32($this->cur_directory);
-				$image_thumbnail = $image_cache_dir.'/'.$file[3].'_'.$file[1]; // The name of the thumbnail
+				$image_thumbnail = $image_cache_dir.'/'.$file[3].'_'.$file[1];
 
 				// Generate thumbnail if there isn't one
 				if (!file_exists($this->config['cache_dir'].'/'.$image_thumbnail))
 				{
-					// Create the directory where the thumbnail is stored if it doesn't exist
+					/* Create the directory where the thumbnail is stored if it doesn't exist.
+					   The directory also needs to be chmodded, otherwise it's not possible
+					   to remove the cache directory in cases that the FTP client and PHP
+					   process run as different users. */
 					if (!is_dir($this->config['cache_dir'].'/'.$image_cache_dir))
 					{
 						mkdir($this->config['cache_dir'].'/'.$image_cache_dir);
@@ -254,14 +294,15 @@ class ImgBrowz0r
 			{
 				if ($this->config['dir_thumbs'])
 				{
-					$dir_hash = crc32($this->cur_directory.$file[1].'/');
+					// The cache directory of the current directory (in this loop)
+					$image_cache_dir = crc32($this->cur_directory.$file[1].'/');
 
-					// Get a list of thumbnails
-					$dir_thumbs = $this->read_cache($dir_hash, $this->cur_directory.$file[1].'/');
+					// Get a list of thumbnails.
+					$dir_thumbs = $this->read_cache($image_cache_dir, $this->cur_directory.$file[1].'/');
 
 					// Choose a thumbnail to show
 					$dir_thumbnail = isset($dir_thumbs[0]) ? ' style="background-image: url(\''.$this->config['cache_url'].'/'.
-					                 $dir_hash.'/'.$dir_thumbs[(!$this->config['random_thumbs'] ? 0 :
+					                 $image_cache_dir.'/'.$dir_thumbs[(!$this->config['random_thumbs'] ? 0 :
 									 mt_rand(0, count($dir_thumbs)-1))].'\')"' : null;
 
 					// Directory thumbnail markup
@@ -280,6 +321,7 @@ class ImgBrowz0r
 				}
 			}
 
+			// Close and open a row
 			if ($row_count === $this->config['max_thumb_row'] && $k < ($this->count_files - 1))
 			{
 				echo "\t", '</div>', "\n\t", '<div class="img-row">', "\n";
@@ -293,6 +335,7 @@ class ImgBrowz0r
 
 		$this->output = ob_get_clean();
 
+		// Write data to the cache if the cache is enabled
 		if ($this->cache)
 		{
 			$this->cache->write('dc-'.crc32($this->full_path).'-'.$this->cur_page, array(
@@ -330,9 +373,13 @@ class ImgBrowz0r
 
 		// Generate breadcrumb links
 		if (isset($path_parts[0]))
+		{
 			foreach ($path_parts as $k => $part)
+			{
 				$output[] = '<a href="'.str_ireplace('%PATH%',  implode('/', array_slice($path_parts, 0, ($k+1))).'/1' ,
 				            $this->config['main_url']).'">'.$part.'</a>';
+			}
+		}
 
 		return '<p class="img-breadcrumbs"><span>Breadcrumbs: </span><a href="'.str_ireplace('%PATH%',  '0/1', $this->config['main_url']).
 		       '">Root</a>'.(isset($output) ? ' / '.implode(' / ', $output) : null).'</p>';
@@ -475,6 +522,8 @@ class ImgBrowz0r
 			imagegif($thumbnail, $this->config['cache_dir'].'/'.$image_thumbnail);
 		}
 
+		/* Chmod the generated thumbnail to 0777 to ensure that it's
+		   possible to remove the thumbnail from the cache. */
 		chmod($this->config['cache_dir'].'/'.$image_thumbnail, 0777);
 
 		// Destroy! (cleanup)
@@ -512,6 +561,9 @@ class ImgBrowz0r
 		else
 		{
 			mkdir($this->config['cache_dir'].'/'.$cache_path);
+
+			/* Chmod the generated thumbnail to 0777 to ensure that it's
+			   possible to remove the thumbnail from the cache. */
 			chmod($this->config['cache_dir'].'/'.$cache_path, 0777);
 		}
 
@@ -575,6 +627,7 @@ class ImgBrowz0r
 	}
 }
 
+// A very basic caching class
 class ImgBrowz0rCache
 {
 	private $cache_path, $cache_lifetime;
@@ -601,6 +654,8 @@ class ImgBrowz0rCache
 		$result = file_put_contents($this->cache_path.'/'.$name.'.php',
 			'<?php return '.var_export($data, true).';');
 
+		/* Chmod the generated cache file to 0777 to ensure that it's
+		   possible to remove the file from the cache. */
 		chmod($this->cache_path.'/'.$name.'.php', 0777);
 
 		return $result;

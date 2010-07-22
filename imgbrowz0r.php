@@ -500,15 +500,18 @@ class ImgBrowz0r
 				$thumb_width = $this->config['max_thumb_width'];
 				$thumb_height = $this->config['max_thumb_height'];
 
+				// The size of the image where we're going to cut the thumbnail out
 				$crop_width = $image_info['width'] / $this->config['crop_resize_factor'];
 				$crop_height = $image_info['height'] / $this->config['crop_resize_factor'];
 
+				// Check if the image isn't too small
 				if ($crop_width < $thumb_width && $crop_height < $thumb_height)
 				{
 					$crop_width = $image_info['width'];
 					$crop_height = $image_info['height'];
 				}
 
+				// Choose x and y coordinates of the thumbnail
 				$src_x = mt_rand(0, $crop_width - $thumb_width);
 				$src_y = mt_rand(0, $crop_height - $thumb_height);
 			}

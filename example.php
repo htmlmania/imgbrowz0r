@@ -60,7 +60,7 @@ $config = array(
 	'crop_mode'                => false,
 
 	// Resize the image before cropping by 2.5. If the image mustn't be resized
-	// the value can be set to one.
+	// the value can be set to 1.
 	'crop_resize_factor'       => 2.5,
 
 	// Date formatting. Look at the PHP date() for help: http://php.net/manual/en/function.date.php

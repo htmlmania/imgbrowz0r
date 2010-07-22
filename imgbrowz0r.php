@@ -3,7 +3,7 @@
 /* ---
 
 	ImgBrowz0r, a simple PHP5 Gallery class
-	Version 0.3.7, May ??th, 2010
+	Version 0.3.7, 22 July 2010
 	http://61924.nl/projects/imgbrowz0r.html
 
 	Copyright (c) 2008-2010 Frank Smit
@@ -81,8 +81,13 @@ class ImgBrowz0r
 		// Thumbnail settings
 		$this->config['thumbs_per_page']     = isset($config['thumbs_per_page']) ? $config['thumbs_per_page'] : 12;
 		$this->config['max_thumb_row']       = isset($config['max_thumb_row']) ? $config['max_thumb_row'] : 4;
+
 		$this->config['max_thumb_width']     = isset($config['max_thumb_width']) ? $config['max_thumb_width'] : 200;
 		$this->config['max_thumb_height']    = isset($config['max_thumb_height']) ? $config['max_thumb_height'] : 200;
+
+		// Crop mode
+		$this->config['crop_mode']           = isset($config['crop_mode']) ? $config['crop_mode'] : false;
+		$this->config['crop_resize_factor']  = isset($config['crop_resize_factor']) ? $config['crop_resize_factor'] : 2;
 
 		// Optional: Date formatting. Look at the PHP date() for help:
 		// http://php.net/manual/en/function.date.php
@@ -129,8 +134,12 @@ class ImgBrowz0r
 		$current_url = urldecode($protocol.$_SERVER['HTTP_HOST'].$port.$_SERVER['REQUEST_URI']);
 
 		// Regex - extract the path and page number from the URL
-		preg_match('/^'.str_replace('%PATH%', '([^%]+)', preg_quote($this->config['main_url'], '/')).'$/i', $current_url, $matches);
-		//preg_match('/^'.str_replace('%PATH%', '([A-Za-z0-9 \/\-_\.]+)', preg_quote($this->config['main_url'], '/')).'$/i',
+		// The % characters are not allowed
+		preg_match('/^'.str_replace('%PATH%', '([^%]+)', preg_quote($this->config['main_url'], '/')).'$/i',
+			$current_url, $matches);
+		// A much stricter version of the regex. Only alphanumeric characters, space, slash, dot,
+		// underscore and the dash are allowed.
+		//preg_match('/^'.str_replace('%PATH%', '([A-Za-z0-9 \/-_.]+)', preg_quote($this->config['main_url'], '/')).'$/i',
 		//	$current_url, $matches);
 
 		// Set current path/directory and page number
@@ -155,7 +164,8 @@ class ImgBrowz0r
 			$this->cur_directory = false;
 
 		$dirs = $imgs = array();
-		$this->full_path = !$this->cur_directory ? $this->config['images_dir'].'/' : $this->config['images_dir'].'/'.$this->cur_directory;
+		$this->full_path = !$this->cur_directory ? $this->config['images_dir'].'/' :
+			$this->config['images_dir'].'/'.$this->cur_directory;
 
 		if (is_dir($this->full_path))
 		{
@@ -194,7 +204,8 @@ class ImgBrowz0r
 					if ($func_exif_exists && $image_extension != 'png' && $image_extension != 'gif')
 					{
 						$exif_data = @exif_read_data($fi->getPathname());
-						$timestamp = $exif_data && isset($exif_data['DateTimeOriginal']) ? strtotime($exif_data['DateTimeOriginal']) : $fi->getCTime();
+						$timestamp = $exif_data && isset($exif_data['DateTimeOriginal']) ?
+							strtotime($exif_data['DateTimeOriginal']) : $fi->getCTime();
 					}
 					else
 						$timestamp = $fi->getCTime();
@@ -254,7 +265,7 @@ class ImgBrowz0r
 		// display A LOT images on one page.
 		#@set_time_limit(180); // 3 Minutes
 
-		$row_count = 1;
+		$t_row_count = 1;
 
 		// Start capturing output
 		ob_start();
@@ -285,7 +296,7 @@ class ImgBrowz0r
 				}
 
 				// Image thumbnail markup
-				echo "\t\t", '<div class="img-thumbnail img-column-', $row_count, '"><a href="', $this->config['images_url'],
+				echo "\t\t", '<div class="img-thumbnail img-column-', $t_row_count, '"><a href="', $this->config['images_url'],
 				     '/', $this->cur_directory, $file[1], '" style="background-image: url(\'', $this->config['cache_url'], '/',
 					 $image_thumbnail, '\')" title="', $file[1], '">', $file[1], '</a><span>', $this->format_time($file[3]),
 				     '</span></div>', "\n";
@@ -306,7 +317,7 @@ class ImgBrowz0r
 									 mt_rand(0, count($dir_thumbs)-1))].'\')"' : null;
 
 					// Directory thumbnail markup
-					echo "\t\t", '<div class="img-directory img-column-', $row_count, '"><a href="',
+					echo "\t\t", '<div class="img-directory img-column-', $t_row_count, '"><a href="',
 					     str_ireplace('%PATH%',  $this->cur_directory.$file[1].'/1', $this->config['main_url']), '"',
 					     $dir_thumbnail, ' title="', $file[1], '">', $file[1], '</a><span class="img-dir-name">', $file[1],
 					     '</span><span class="img-thumb-date">', $this->format_time($file[3]), '</span></div>', "\n";
@@ -314,7 +325,7 @@ class ImgBrowz0r
 				else
 				{
 					// Display a directory without a thumbnail
-					echo "\t\t", '<div class="img-directory img-no-thumbnail img-column-', $row_count, '"><a href="',
+					echo "\t\t", '<div class="img-directory img-no-thumbnail img-column-', $t_row_count, '"><a href="',
 					     str_ireplace('%PATH%',  $this->cur_directory.$file[1].'/1', $this->config['main_url']),
 					     '" title="', $file[1], '"><span>', $file[1], '</span></a><span>', $this->format_time($file[3]),
 					     '</span></div>', "\n";
@@ -322,13 +333,13 @@ class ImgBrowz0r
 			}
 
 			// Close and open a row
-			if ($row_count === $this->config['max_thumb_row'] && $k < ($this->count_files - 1))
+			if ($t_row_count === $this->config['max_thumb_row'] && $k < ($this->count_files - 1))
 			{
 				echo "\t", '</div>', "\n\t", '<div class="img-row">', "\n";
-				$row_count = 0;
+				$t_row_count = 0;
 			}
 
-			++$row_count;
+			++$t_row_count;
 		}
 
 		echo "\t", '</div>', "\n\n\t", '<div class="clear">&nbsp;</div>', "\n", '</div>', "\n\n";
@@ -475,7 +486,8 @@ class ImgBrowz0r
 		$zoomh = $image_info['height'] / $this->config['max_thumb_height'];
 		$zoom = ($zoomw > $zoomh) ? $zoomw : $zoomh;
 
-		if ($image_info['width'] < $this->config['max_thumb_width'] && $image_info['height'] < $this->config['max_thumb_height'])
+		if ($image_info['width'] < $this->config['max_thumb_width'] &&
+		    $image_info['height'] < $this->config['max_thumb_height'])
 		{
 			// Preserve the original dimensions of the image is smaller than the maximum height and width
 			$thumb_width = $image_info['width'];
@@ -483,8 +495,29 @@ class ImgBrowz0r
 		}
 		else
 		{
-			$thumb_width = $image_info['width'] / $zoom;
-			$thumb_height = $image_info['height'] / $zoom;
+			if ($this->config['crop_mode'])
+			{
+				$thumb_width = $this->config['max_thumb_width'];
+				$thumb_height = $this->config['max_thumb_height'];
+
+				$crop_width = $image_info['width'] / $this->config['crop_resize_factor'];
+				$crop_height = $image_info['height'] / $this->config['crop_resize_factor'];
+
+				if ($crop_width < $thumb_width && $crop_height < $thumb_height)
+				{
+					$crop_width = $image_info['width'];
+					$crop_height = $image_info['height'];
+				}
+
+				$src_x = mt_rand(0, $crop_width - $thumb_width);
+				$src_y = mt_rand(0, $crop_height - $thumb_height);
+			}
+			else
+			{
+				$thumb_width = $crop_width = $image_info['width'] / $zoom;
+				$thumb_height = $crop_height = $image_info['height'] / $zoom;
+				$src_x = $src_y = 0;
+			}
 		}
 
 		// Create an image for the thumbnail
@@ -509,7 +542,8 @@ class ImgBrowz0r
 		}
 
 		// Copy and resize image
-		imagecopyresampled($thumbnail, $image, 0, 0, 0, 0, $thumb_width, $thumb_height, $image_info['width'], $image_info['height']);
+		imagecopyresampled($thumbnail, $image, 0, 0, $src_x, $src_y, $crop_width, $crop_height, $image_info['width'], $image_info['height']);
+      //imagecopyresampled($thumbnail, $image, 0, 0, $src_x, $src_y, $image_width, $image_height, $image_width,         $image_height);
 
 		// Save the thumbnail, but first check what kind of file it is
 		if ($image_info['type'] === 3)

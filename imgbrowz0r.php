@@ -39,8 +39,8 @@ class ImgBrowz0r
 
 	// All image extensions/types that browsers support. Jpeg, jpe, jif, jfif
 	// and jfi are actually just JPG images with other extensions
-    protected $image_types = array('.gif' => '', '.jpg' => '', '.jpeg' => '', '.jpe' => '',
-                                   '.jif' => '', '.jfif' => '', '.jfi' => '', '.png' => '');
+    protected $image_types = array('.gif' => 0, '.jpg' => 0, '.jpeg' => 0, '.jpe' => 0,
+                                   '.jif' => 0, '.jfif' => 0, '.jfi' => 0, '.png' => 0);
 
 	public $status = 200;
 
@@ -539,24 +539,31 @@ class ImgBrowz0r
 		// Look for thumbnails in the cache dir
 		if (is_dir($this->config['cache_dir'].'/'.$cache_path))
 		{
-			$file_count = 0;
-			$dir = new DirectoryIterator($this->config['cache_dir'].'/'.$cache_path);
-
-			foreach ($dir as $index => $fi)
+			try
 			{
-				$filename = $fi->getFilename();
+				$file_count = 0;
+				$dir = new DirectoryIterator($this->config['cache_dir'].'/'.$cache_path);
 
-				if (isset($this->image_types[$this->get_ext($filename)]))
+				foreach ($dir as $index => $fi)
 				{
-					$thumbnails[] = $filename;
-					++$file_count;
+					$filename = $fi->getFilename();
 
-					if ($file_count === $this->config['read_thumb_limit'])
-						break;
+					if (isset($this->image_types[$this->get_ext($filename)]))
+					{
+						$thumbnails[] = $filename;
+						++$file_count;
+
+						if ($file_count === $this->config['read_thumb_limit'])
+							break;
+					}
 				}
-			}
 
-			unset($dir);
+				unset($dir);
+			}
+			catch (UnexpectedValueException $e)
+			{
+				return $thumbnails;
+			}
 		}
 		else
 		{
@@ -565,36 +572,40 @@ class ImgBrowz0r
 			/* Chmod the generated thumbnail to 0777 to ensure that it's
 			   possible to remove the thumbnail from the cache. */
 			chmod($this->config['cache_dir'].'/'.$cache_path, 0777);
-		}
 
-		// Generate a thumbnail if none is found
-		if (!isset($thumbnails[0]))
-		{
-			$file_count = 0;
-			$dir = new DirectoryIterator($this->config['images_dir'].'/'.$category_path);
-
-			foreach ($dir as $fi)
+			try
 			{
+				$fi = new DirectoryIterator($this->config['images_dir'].'/'.$category_path);
+
+				while (true)
+				{
+					if (!$fi->valid())
+						return $thumbnails;
+
+					if (!$fi->isFile())
+						$fi->next();
+					else
+						break;
+				}
+
 				$filename = $fi->getFilename();
 
 				if (isset($this->image_types[$this->get_ext($filename)]))
 				{
 					// The name of the thumbnail
-					$image_thumbnail = $cache_path.'/'.filectime($this->config['images_dir'].'/'.$category_path.'/'.$filename).'_'.$filename;
+					$image_thumbnail = $cache_path.'/'.filectime($this->config['images_dir'].'/'.
+						$category_path.'/'.$filename).'_'.$filename;
 
 					$thumbnails[] = basename($image_thumbnail);
 					$this->make_thumb($category_path, $filename, $image_thumbnail);
-
-					++$file_count;
-
-					// Change 1 to a higher number if you want to generate more thumbnails
-					// for a directory, but this also takes more time and memory.
-					if ($file_count === 1)
-						break;
 				}
-			}
 
-			unset($dir);
+				unset($fi);
+			}
+			catch (UnexpectedValueException $e)
+			{
+				return $thumbnails;
+			}
 		}
 
 		return $thumbnails;
